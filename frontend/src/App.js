@@ -10,12 +10,13 @@ import InterviewSenior from "./pages/InterviewSenior.js";
 export default function App() {
   return (
     <Router>
-      {/* <Navbar /> */}
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/behavioral-assessment" element={<BehavioralAssessmentForm />} />
         <Route path="/interview" element={<InterviewInstructions />} />
-        <Route path="/interview/entry" element={<InterviewEntry />} />
+        {/* This line changes to a dynamic route below */}
+        {/* <Route path="/interview/entry" element={<InterviewEntry />} /> */}
+        <Route path="/interview/:id" element={<InterviewEntry />} />
         <Route path="/interview/mid" element={<InterviewMid />} />
         <Route path="/interview/senior" element={<InterviewSenior />} />
       </Routes>

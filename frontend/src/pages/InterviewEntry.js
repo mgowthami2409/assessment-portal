@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { submitInterviewForm } from "../services/api";
+import React, { useState, useEffect } from "react"; // Replace current import by this
+import { useParams } from "react-router-dom";        // Add this import
+import { submitInterviewForm, getInterviewById } from "../services/api";  // Import both API functions
 import suprajitLogo from '../assets/suprajit_logo_BG.png';
 
 const initialValuesData = [
@@ -211,6 +212,7 @@ const styles = {
 };
 
 export default function InterviewAssessmentForm() {
+  const { id } = useParams();  // GET INTERVIEW ID FROM URL
   const [formData, setFormData] = useState({
     candidateName: "",
     competencyNames: ["", "", "", "", ""], // 5 empty values for 5 rows
@@ -240,6 +242,57 @@ export default function InterviewAssessmentForm() {
   const updateField = (field, value) => {
     setFormData((f) => ({ ...f, [field]: value }));
   };
+
+  
+  useEffect(() => {
+    if (id) {
+      getInterviewById(id)
+        .then((res) => {
+          if (res.data.success) {
+            const data = res.data.interview;
+
+            // Ensure behavioralAnswers array is available, else initialize default
+            const behavioralAnswers =
+              Array.isArray(data.behavioralAnswers) && data.behavioralAnswers.length === 6
+                ? data.behavioralAnswers
+                : Array(6)
+                    .fill()
+                    .map(() => ({
+                      selectedQuestions: [],
+                      notes: { circumstance: "", action: "", result: "" },
+                    }));
+
+            setFormData({
+              candidateName: data.candidateName || "",
+              competencyNames: data.competencyNames || ["", "", "", "", ""],
+              interviewerName: data.interviewerName || "",
+              position: data.position || "",
+              location: data.location || "",
+              interviewDate: data.interviewDate || "",
+              strengths: data.strengths || "",
+              improvementAreas: data.improvementAreas || "",
+              finalRecommendation: data.finalRecommendation || "",
+              overallComments: data.overallComments || "",
+              reviewingManagerName: data.reviewingManagerName || "",
+              divisionName: data.divisionName || "",
+              behavioralAnswers: behavioralAnswers,
+            });
+
+            setSignatures({
+              hiringManager: data.hiringManager || null,
+              reviewingManager: data.reviewingManager || null,
+              divisionHR: data.divisionHR || null,
+            });
+          } else {
+            alert("Interview data not found.");
+          }
+        })
+        .catch((err) => {
+          alert("Failed to fetch interview data.");
+          console.error(err);
+        });
+    }
+  }, [id]);
 
   // const handleShareAndSave = async () => {
   //   try {
@@ -589,7 +642,14 @@ export default function InterviewAssessmentForm() {
             >
               <input
                 type="checkbox"
-                checked={formData.behavioralAnswers[idx].selectedQuestions.includes(qi)}
+                checked={
+                  formData.behavioralAnswers &&
+                  formData.behavioralAnswers[idx] &&
+                  Array.isArray(formData.behavioralAnswers[idx].selectedQuestions) &&
+                  formData.behavioralAnswers[idx].selectedQuestions.includes(qi)
+                    ? true
+                    : false
+                }
                 onChange={() => toggleBehavioralQuestion(idx, qi)}
                 style={{ marginRight: 8, marginTop: 6 }}
               />
