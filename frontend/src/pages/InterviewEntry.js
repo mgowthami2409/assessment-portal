@@ -395,7 +395,14 @@ export default function InterviewAssessmentForm() {
   const handleSubmitAndShare = async () => {
     try {
       // Save form data to backend
-      const response = await submitInterviewForm(formData, interviewId);
+      // const response = await submitInterviewForm(formData, interviewId);
+
+      const payload = {
+        ...formData,
+        ...signatures,
+      };
+
+      const response = await submitInterviewForm(payload, interviewId);
 
       if (response.data.success) {
         // Update interviewId if new
