@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-// import { submitInterviewForm } from "../services/api";
+import { submitInterviewForm } from "../services/api";
 import suprajitLogo from '../assets/suprajit_logo_BG.png';
 
 const initialValuesData = [
@@ -75,7 +75,6 @@ const styles = {
   container: {
     padding: 20,
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana",
-    // background: "#f7fafc",
     color: "#333333ff",
   },
   heading2: {
@@ -338,41 +337,44 @@ export default function InterviewAssessmentForm() {
     }
   };
 
-  const handleShareAndSave = () => {
-    const email = prompt("Enter email address to share the interview assessment:");
-    if (!email) return alert("Email is required.");
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) return alert("Enter a valid email.");
+  const [interviewId, setInterviewId] = useState(null);
+  
+  const handleSubmitAndShare = async () => {
+    try {
+      // Save form data to backend
+      const response = await submitInterviewForm(formData, interviewId);
 
-    const subject = encodeURIComponent("Interview Assessment Form");
-    const bodyLines = [
-      `Candidate Name: ${formData.candidateName}`,
-      `Interviewer: ${formData.interviewerName}`,
-      `Position: ${formData.position}`,
-      `Location: ${formData.location}`,
-      `Strengths: ${formData.strengths}`,
-      `Areas of Improvement: ${formData.improvementAreas}`,
-      `Final Recommendation: ${formData.finalRecommendation}`,
-      `Overall Comments: ${formData.overallComments}`,
-      `Reviewing Manager Name: ${formData.reviewingManagerName}`,
-      `Division HR Name: ${formData.divisionHRName}`,
-      "",
-      "Behavioral Answers:",
-    ];
+      if (response.data.success) {
+        // Update interviewId if new
+        setInterviewId(response.data.interviewId);
+        alert("Form saved successfully!");
 
-    formData.behavioralAnswers.forEach((answer, idx) => {
-      bodyLines.push(initialValuesData[idx].title + ":");
-      answer.selectedQuestions.forEach((qi) => {
-        bodyLines.push("- " + initialValuesData[idx].questions[qi]);
-      });
-      bodyLines.push(`Notes - Circumstance: ${answer.notes.circumstance}`);
-      bodyLines.push(`Notes - Action: ${answer.notes.action}`);
-      bodyLines.push(`Notes - Result: ${answer.notes.result}`);
-      bodyLines.push("");
-    });
+        // Ask approver for email
+        const email = prompt("Enter email address to share with:");
+        if (!email) return alert("Email is required");
 
-    const body = encodeURIComponent(bodyLines.join("\n"));
-    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+        // Build mail subject & body
+        const subject = encodeURIComponent("Interview Assessment Form");
+        const body = encodeURIComponent(`
+          Candidate Name: ${formData.candidateName}
+          Interviewer: ${formData.interviewerName}
+          Position: ${formData.position}
+          Location: ${formData.location}
+          Date: ${formData.interviewDate}
+
+          Link to form: ${window.location.origin}/interview/${response.data.interviewId}
+
+          Please review, update if required, and add your signature.
+                `);
+        // Open Outlook / default mail client
+        window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+      } else {
+        alert("Failed to save form");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error occurred while saving form");
+    }
   };
 
   // const [interviewId, setInterviewId] = useState(null); // store interview form ID if saved
@@ -821,12 +823,10 @@ export default function InterviewAssessmentForm() {
       </table>
 
       <div style={styles.btnGroup}>
-        <button
-          style={{ ...styles.btn, backgroundColor: "#1e4489" }}
-          onClick={handleShareAndSave}
-        >
-          Share via Email
-        </button>
+      <button onClick={handleSubmitAndShare} style={{ ...styles.btn, backgroundColor: "#bd2331" }}>
+        Submit & Share
+      </button>
+
       </div>
       <p style={{ textAlign: "center", marginTop: "30px", fontSize: "14px", color: "#666" }}>
         Powered by <strong>IS&amp;T</strong>

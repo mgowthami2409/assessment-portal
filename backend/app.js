@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const { json, urlencoded } = require("body-parser");
+const path = require("path");          // Add this require here
 const { PORT } = require("./config");
 
 // Import routes
@@ -22,10 +23,16 @@ app.use(urlencoded({ extended: true }));
 app.use("/api/assessments", assessmentRoutes);  // Behavioral assessment API
 app.use("/api/interview", interviewRoutes);     // Interview assessment API
 
-// Default route or 404 handler (optional)
-app.use((req, res) => {
-  res.status(404).json({ error: "Not Found" });
+// Static serving for React frontend (add this block)
+app.use(express.static(path.join(__dirname, "../frontend/build")));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/build/index.html"));
 });
+
+// Comment out or remove old 404 handler because React will handle routing
+// app.use((req, res) => {
+//   res.status(404).json({ error: "Not Found" });
+// });
 
 app.listen(PORT, () => {
   console.log(`Backend server running at http://localhost:${PORT}`);
