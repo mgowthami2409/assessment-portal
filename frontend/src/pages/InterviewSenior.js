@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // Replace current import by this
+import { useParams } from "react-router-dom";        // Add this import
+import { submitInterviewForm, getInterviewById } from "../services/api";  // Import both API functions
 import suprajitLogo from '../assets/suprajit_logo_BG.png';
 
 const initialValuesData = [
@@ -216,6 +218,8 @@ const styles = {
 };
 
 export default function InterviewAssessmentForm() {
+  const { id } = useParams();  // GET INTERVIEW ID FROM URL
+  // const printRef = useRef();
   const [formData, setFormData] = useState({
     candidateName: "",
     competencyNames: ["", "", "", "", ""], // 5 empty values for 5 rows
@@ -245,6 +249,117 @@ export default function InterviewAssessmentForm() {
   const updateField = (field, value) => {
     setFormData((f) => ({ ...f, [field]: value }));
   };
+
+  
+  useEffect(() => {
+    if (id) {
+      getInterviewById(id)
+        .then((res) => {
+          if (res.data.success) {
+            const data = res.data.interview;
+
+            // Ensure behavioralAnswers array is available, else initialize default
+            const behavioralAnswers =
+              Array.isArray(data.behavioralAnswers) && data.behavioralAnswers.length === 6
+                ? data.behavioralAnswers
+                : Array(6)
+                    .fill()
+                    .map(() => ({
+                      selectedQuestions: [],
+                      notes: { circumstance: "", action: "", result: "" },
+                    }));
+
+            setFormData({
+              candidateName: data.candidateName || "",
+              competencyNames: data.competencyNames || ["", "", "", "", ""],
+              interviewerName: data.interviewerName || "",
+              position: data.position || "",
+              location: data.location || "",
+              interviewDate: data.interviewDate || "",
+              strengths: data.strengths || "",
+              improvementAreas: data.improvementAreas || "",
+              finalRecommendation: data.finalRecommendation || "",
+              overallComments: data.overallComments || "",
+              reviewingManagerName: data.reviewingManagerName || "",
+              divisionName: data.divisionName || "",
+              behavioralAnswers: behavioralAnswers,
+            });
+
+            setSignatures({
+              hiringManager: data.hiringManager || null,
+              reviewingManager: data.reviewingManager || null,
+              divisionHR: data.divisionHR || null,
+            });
+          } else {
+            alert("Interview data not found.");
+          }
+        })
+        .catch((err) => {
+          alert("Failed to fetch interview data.");
+          console.error(err);
+        });
+    }
+  }, [id]);
+
+  // const handleShareAndSave = async () => {
+  //   try {
+  //     // Prepare payload with form data and signatures
+  //     const payload = {
+  //       formData,
+  //       signatures,
+  //     };
+
+  //     // Save form data & signatures to backend
+  //     ponse = await submitInterviewForm(payload, interviewId);
+  //     if (response.data.success) {
+  //       // Update interviewId state if first save
+  //       if (!interviewId) setInterviewId(response.data.interviewId);
+
+  //       // Prompt for email after successful save
+  //       const email = prompt("Enter email address to share the interview assessment:");
+  //       if (!email) return alert("Email is required.");
+  //       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  //       if (!emailRegex.test(email)) return alert("Enter a valid email.");
+
+  //       // Prepare email content for mailto link
+  //       const subject = encodeURIComponent("Interview Assessment Form");
+  //       const bodyLines = [
+  //         `Candidate Name: ${formData.candidateName}`,
+  //         `Interviewer: ${formData.interviewerName}`,
+  //         `Position: ${formData.position}`,
+  //         `Location: ${formData.location}`,
+  //         `Strengths: ${formData.strengths}`,
+  //         `Areas of Improvement: ${formData.improvementAreas}`,
+  //         `Final Recommendation: ${formData.finalRecommendation}`,
+  //         `Overall Comments: ${formData.overallComments}`,
+  //         `Reviewing Manager Name: ${formData.reviewingManagerName}`,
+  //         `Division HR Name: ${formData.divisionHRName}`,
+  //         "",
+  //         "Behavioral Answers:",
+  //       ];
+
+  //       formData.behavioralAnswers.forEach((answer, idx) => {
+  //         bodyLines.push(initialValuesData[idx].title + ":");
+  //         answer.selectedQuestions.forEach(qi => {
+  //           bodyLines.push("- " + initialValuesData[idx].questions[qi]);
+  //         });
+  //         bodyLines.push(`Notes - Circumstance: ${answer.notes.circumstance}`);
+  //         bodyLines.push(`Notes - Action: ${answer.notes.action}`);
+  //         bodyLines.push(`Notes - Result: ${answer.notes.result}`);
+  //         bodyLines.push("");
+  //       });
+
+  //       const body = encodeURIComponent(bodyLines.join("\n"));
+  //       // Open mail client with prefilled values
+  //       window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+  //     } else {
+  //       alert("Failed to save form before sharing.");
+  //     }
+  //   } catch (err) {
+  //     alert("Error saving form before sharing.");
+  //     console.error(err);
+  //   }
+  // };
 
   const toggleBehavioralQuestion = (valueIndex, questionIndex) => {
     setFormData((f) => {
@@ -282,42 +397,86 @@ export default function InterviewAssessmentForm() {
     }
   };
 
-  const handleShareAndSave = () => {
-    const email = prompt("Enter email address to share the interview assessment:");
-    if (!email) return alert("Email is required.");
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) return alert("Enter a valid email.");
+  const [interviewId, setInterviewId] = useState(null);
+  
+  const handleSubmitAndShare = async () => {
+    try {
+      // Save form data to backend
+      // const response = await submitInterviewForm(formData, interviewId);
 
-    const subject = encodeURIComponent("Interview Assessment Form");
-    const bodyLines = [
-      `Candidate Name: ${formData.candidateName}`,
-      `Interviewer: ${formData.interviewerName}`,
-      `Position: ${formData.position}`,
-      `Location: ${formData.location}`,
-      `Strengths: ${formData.strengths}`,
-      `Areas of Improvement: ${formData.improvementAreas}`,
-      `Final Recommendation: ${formData.finalRecommendation}`,
-      `Overall Comments: ${formData.overallComments}`,
-      `Reviewing Manager Name: ${formData.reviewingManagerName}`,
-      `Division HR Name: ${formData.divisionHRName}`,
-      "",
-      "Behavioral Answers:",
-    ];
+      const payload = {
+        ...formData,
+        ...signatures,
+      };
 
-    formData.behavioralAnswers.forEach((answer, idx) => {
-      bodyLines.push(initialValuesData[idx].title + ":");
-      answer.selectedQuestions.forEach((qi) => {
-        bodyLines.push("- " + initialValuesData[idx].questions[qi]);
-      });
-      bodyLines.push(`Notes - Circumstance: ${answer.notes.circumstance}`);
-      bodyLines.push(`Notes - Action: ${answer.notes.action}`);
-      bodyLines.push(`Notes - Result: ${answer.notes.result}`);
-      bodyLines.push("");
-    });
+      const response = await submitInterviewForm(payload, interviewId);
 
-    const body = encodeURIComponent(bodyLines.join("\n"));
-    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+      if (response.data.success) {
+        // Update interviewId if new
+        setInterviewId(response.data.interviewId);
+        alert("Form saved successfully!");
+
+        // Ask approver for email
+        const email = prompt("Enter email address to share with:");
+        if (!email) return alert("Email is required");
+
+        // Build mail subject & body
+        const subject = encodeURIComponent("Interview Assessment Form");
+        const body = encodeURIComponent(`
+          Candidate Name: ${formData.candidateName}
+          Interviewer: ${formData.interviewerName}
+          Position: ${formData.position}
+          Location: ${formData.location}
+          Date: ${formData.interviewDate}
+
+          Link to form: ${window.location.origin}/interview/${response.data.interviewId}
+
+          Please review, update if required, and add your signature.
+                `);
+        // Open Outlook / default mail client
+        window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+      } else {
+        alert("Failed to save form");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error occurred while saving form");
+    }
   };
+
+  // const handleDownloadPdf = () => {
+  //   const input = printRef.current;
+  //   html2canvas(input).then(canvas => {
+  //     const imgData = canvas.toDataURL('image/png');
+  //     const pdf = new jsPDF('p', 'pt', 'a4');
+  //     const pdfWidth = pdf.internal.pageSize.getWidth();
+  //     const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+  //     pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+  //     pdf.save('Interview_Assessment.pdf');
+  //   });
+  // };
+
+  // const [interviewId, setInterviewId] = useState(null); // store interview form ID if saved
+
+  // const handleSubmit = async () => {
+  //   try {
+  //     const payload = {
+  //       formData,
+  //       signatures,
+  //     };
+  //     const response = await submitInterviewForm(payload, interviewId);
+  //     if (response.data.success) {
+  //       alert("Form submitted successfully!");
+  //       if (!interviewId) setInterviewId(response.data.interviewId);
+  //     } else {
+  //       alert("Failed to submit form.");
+  //     }
+  //   } catch (err) {
+  //     alert("Error submitting form.");
+  //     console.error(err);
+  //   }
+  // };
 
   return (
     <div style={styles.container}>
@@ -326,7 +485,7 @@ export default function InterviewAssessmentForm() {
         alt="Suprajit Logo"
         style={{ height: 60, marginRight: 16 }}
       />
-      <h2 style={styles.heading2}>Interview Assessment Form - Senior Level</h2>
+      <h2 style={styles.heading2}>Interview Assessment Form - Entry Level</h2>
 
       <label style={styles.inputLabel}>Candidate Name:</label>
       <input
@@ -510,14 +669,21 @@ export default function InterviewAssessmentForm() {
             >
               <input
                 type="checkbox"
-                checked={formData.behavioralAnswers[idx].selectedQuestions.includes(qi)}
+                checked={
+                  formData.behavioralAnswers &&
+                  formData.behavioralAnswers[idx] &&
+                  Array.isArray(formData.behavioralAnswers[idx].selectedQuestions) &&
+                  formData.behavioralAnswers[idx].selectedQuestions.includes(qi)
+                    ? true
+                    : false
+                }
                 onChange={() => toggleBehavioralQuestion(idx, qi)}
                 style={{ marginRight: 8, marginTop: 6 }}
               />
               <div style={{ lineHeight: 1.4 }}>{q}</div>
             </label>
           ))}
-          <div style={{ marginTop: 12, marginBottom: 6, fontWeight: 600}}>
+          <div style={{ marginTop: 12, marginBottom: 6, fontWeight: 600 }}>
             Interview Notes:{" "}
             <span style={{ fontStyle: "italic", color: "#555", marginLeft: 8, fontSize: 13 }}>
               Mention what is the circumstance, action taken by the candidate and what was the result
@@ -744,12 +910,25 @@ export default function InterviewAssessmentForm() {
       </table>
 
       <div style={styles.btnGroup}>
-        <button
-          style={{ ...styles.btn, backgroundColor: "#1e4489" }}
-          onClick={handleShareAndSave}
-        >
-          Share via Email
-        </button>
+      <button onClick={handleSubmitAndShare} style={{ ...styles.btn, backgroundColor: "#bd2331" }}>
+        Submit & Share
+      </button>
+      <button
+        onClick={() => window.print()}
+        style={{
+          marginTop: 20,
+          backgroundColor: '#bd2331',
+          color: '#fff',
+          padding: '12px 24px',
+          borderRadius: 6,
+          cursor: 'pointer',
+          fontSize: 16,
+          border: 'none',
+        }}
+      >
+        Download PDF
+      </button>
+
       </div>
       <p style={{ textAlign: "center", marginTop: "30px", fontSize: "14px", color: "#666" }}>
         Powered by <strong>IS&amp;T</strong>

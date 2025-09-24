@@ -213,6 +213,7 @@ const styles = {
 
 export default function InterviewAssessmentForm() {
   const { id } = useParams();  // GET INTERVIEW ID FROM URL
+  // const printRef = useRef();
   const [formData, setFormData] = useState({
     candidateName: "",
     competencyNames: ["", "", "", "", ""], // 5 empty values for 5 rows
@@ -436,6 +437,19 @@ export default function InterviewAssessmentForm() {
       alert("Error occurred while saving form");
     }
   };
+
+  // const handleDownloadPdf = () => {
+  //   const input = printRef.current;
+  //   html2canvas(input).then(canvas => {
+  //     const imgData = canvas.toDataURL('image/png');
+  //     const pdf = new jsPDF('p', 'pt', 'a4');
+  //     const pdfWidth = pdf.internal.pageSize.getWidth();
+  //     const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+  //     pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+  //     pdf.save('Interview_Assessment.pdf');
+  //   });
+  // };
 
   // const [interviewId, setInterviewId] = useState(null); // store interview form ID if saved
 
@@ -892,6 +906,21 @@ export default function InterviewAssessmentForm() {
       <div style={styles.btnGroup}>
       <button onClick={handleSubmitAndShare} style={{ ...styles.btn, backgroundColor: "#bd2331" }}>
         Submit & Share
+      </button>
+      <button
+        onClick={() => window.print()}
+        style={{
+          marginTop: 20,
+          backgroundColor: '#bd2331',
+          color: '#fff',
+          padding: '12px 24px',
+          borderRadius: 6,
+          cursor: 'pointer',
+          fontSize: 16,
+          border: 'none',
+        }}
+      >
+        Download PDF
       </button>
 
       </div>
