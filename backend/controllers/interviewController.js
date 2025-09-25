@@ -70,8 +70,6 @@ async function fetchInterviewById(req, res) {
   }
 }
 
-module.exports = { submitInterviewForm, fetchInterviewById, shareInterview };
-
 async function shareInterview(req, res) {
   try {
     // Expected body: { interviewId, toEmail }
@@ -119,3 +117,5 @@ async function shareInterview(req, res) {
     res.status(500).json({ success: false, error: err.message });
   }
 }
+
+module.exports = { submitInterviewForm, fetchInterviewById, shareInterview };
