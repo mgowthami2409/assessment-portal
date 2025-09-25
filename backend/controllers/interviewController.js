@@ -1,25 +1,26 @@
-const interviewService = require("../services/interviewService");
+const { saveInterviewForm, getInterviewById } = require("../services/interviewService");
 
-exports.submitInterviewForm = async (req, res) => {
+async function submitInterviewForm(req, res) {
   try {
-    const { formData, signatures, interviewId } = req.body;
-    const id = await interviewService.saveInterviewForm(formData, signatures, interviewId);
-    res.json({ success: true, interviewId: id });
+    const { formData, role } = req.body;
+    const result = await saveInterviewForm(formData, role);
+    res.status(200).json({ success: true, interviewId: result });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Failed to save interview form." });
+    console.error("Error submitting interview form:", err);
+    res.status(500).json({ success: false, error: err.message });
   }
-};
+}
 
-exports.getInterviewById = async (req, res) => {
+async function fetchInterviewById(req, res) {
   try {
-    const interview = await interviewService.getInterviewById(req.params.id);
+    const interview = await getInterviewById(req.params.id);
     if (!interview) {
-      return res.status(404).json({ success: false, message: "Interview not found." });
+      return res.status(404).json({ success: false, message: "Interview not found" });
     }
-    res.json({ success: true, interview });
+    res.status(200).json({ success: true, interview });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Error fetching interview." });
+    res.status(500).json({ success: false, error: err.message });
   }
-};
+}
+
+module.exports = { submitInterviewForm, fetchInterviewById };

@@ -1,21 +1,16 @@
-// In-memory storage (replace with DB later if needed)
-const forms = {};
+const interviewSmartsheetService = require("./interviewSmartsheetService");
 
-// Save or update form
-async function saveInterviewForm(formData, signatures, interviewId) {
-  const id = interviewId || Date.now().toString();
-  // Merge formData and signatures into one object for storage
-  forms[id] = { ...formData, ...signatures, id };
-  return id;
+async function saveInterviewForm(formData, role) {
+  if (!formData.interviewId) {
+    // Create new row for Hiring Manager
+    return await interviewSmartsheetService.addRowWithInterviewData(formData);
+  } else {
+    // Update same row for Reviewing Manager or Division HR
+    return await interviewSmartsheetService.updateRowWithInterviewData(formData.interviewId, formData);
+  }
 }
 
-
-// Fetch form by ID
 async function getInterviewById(id) {
-  return forms[id] || null;
+  return await interviewSmartsheetService.getInterviewById(id);
 }
-
-module.exports = {
-  saveInterviewForm,
-  getInterviewById,
-};
+module.exports = { saveInterviewForm, getInterviewById };

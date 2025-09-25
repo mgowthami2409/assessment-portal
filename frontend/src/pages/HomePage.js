@@ -75,6 +75,9 @@ export default function HomePage() {
           Interview Assessment Form
         </div>
       </div>
+      <p style={{ textAlign: "center", marginTop: "150px", fontSize: "14px", color: "#666" }}>
+        Powered by <strong>IS&amp;T</strong>
+      </p>
     </div>
   );
 }
