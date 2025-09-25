@@ -39,6 +39,18 @@ async function addRowWithInterviewData(formData) {
     { columnId: columnMap.ReviewingManagerSignature, value: safeValue(formData.reviewingManager) },
     { columnId: columnMap.DivisionHRSignature, value: safeValue(formData.divisionHR) },
   ];
+  // Optionally save competency names and behavioral answers as JSON if those columns exist
+  if (columnMap.CompetencyNames && Array.isArray(formData.competencyNames)) {
+    cells.push({ columnId: columnMap.CompetencyNames, value: safeValue(JSON.stringify(formData.competencyNames)) });
+  }
+  if (columnMap.BehavioralAnswers && formData.behavioralAnswers) {
+    try {
+      cells.push({ columnId: columnMap.BehavioralAnswers, value: safeValue(JSON.stringify(formData.behavioralAnswers)) });
+    } catch (e) {
+      // ignore serialization errors; do not block saving
+      console.warn('Could not stringify behavioralAnswers', e);
+    }
+  }
   const newRow = { toTop: true, cells };
   const addedRows = await smartsheet.sheets.addRows({
     sheetId: SHEET_ID,
@@ -65,6 +77,17 @@ async function updateRowWithInterviewData(interviewId, formData) {
     { columnId: columnMap.ReviewingManagerSignature, value: safeValue(formData.reviewingManager) },
     { columnId: columnMap.DivisionHRSignature, value: safeValue(formData.divisionHR) },
   ];
+  // Optionally save competency names and behavioral answers as JSON if those columns exist
+  if (columnMap.CompetencyNames && Array.isArray(formData.competencyNames)) {
+    cells.push({ columnId: columnMap.CompetencyNames, value: safeValue(JSON.stringify(formData.competencyNames)) });
+  }
+  if (columnMap.BehavioralAnswers && formData.behavioralAnswers) {
+    try {
+      cells.push({ columnId: columnMap.BehavioralAnswers, value: safeValue(JSON.stringify(formData.behavioralAnswers)) });
+    } catch (e) {
+      console.warn('Could not stringify behavioralAnswers', e);
+    }
+  }
   const rowMod = { id: Number(interviewId), cells };
   await smartsheet.sheets.updateRows({
     sheetId: SHEET_ID,
@@ -99,6 +122,15 @@ async function getInterviewById(rowId) {
     hiringManager: getCellValue("HiringManagerSignature"),
     reviewingManager: getCellValue("ReviewingManagerSignature"),
     divisionHR: getCellValue("DivisionHRSignature"),
+    // Parse competency names and behavioral answers if present
+    competencyNames: (() => {
+      const v = getCellValue("CompetencyNames");
+      try { return v ? JSON.parse(v) : null; } catch (e) { return null; }
+    })(),
+    behavioralAnswers: (() => {
+      const v = getCellValue("BehavioralAnswers");
+      try { return v ? JSON.parse(v) : null; } catch (e) { return null; }
+    })(),
   };
 }
 

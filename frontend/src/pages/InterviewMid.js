@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"; // Replace current import by this
 import { useParams } from "react-router-dom";        // Add this import
-import { submitInterviewForm, getInterviewById } from "../services/api";  // Import both API functions
+import { submitInterviewForm, getInterviewById, shareInterview } from "../services/api";  // Import API functions
 import suprajitLogo from '../assets/suprajit_logo_BG.png';
 
 const initialValuesData = [
@@ -416,21 +416,20 @@ export default function InterviewAssessmentForm() {
         const email = prompt("Enter email address to share with:");
         if (!email) return alert("Email is required");
 
-        // Build mail subject & body
-        const subject = encodeURIComponent("Interview Assessment Form");
-        const body = encodeURIComponent(`
-          Candidate Name: ${formData.candidateName}
-          Interviewer: ${formData.interviewerName}
-          Position: ${formData.position}
-          Location: ${formData.location}
-          Date: ${formData.interviewDate}
-
-          Link to form: ${window.location.origin}/interview/${response.data.interviewId}
-
-          Please review, update if required, and add your signature.
-                `);
-        // Open Outlook / default mail client
-        window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+        // Call backend to send or return mailto
+        const shareResp = await shareInterview(response.data.interviewId, email);
+        if (shareResp.data.success) {
+          if (shareResp.data.provider === 'smtp') {
+            alert('Email sent via SMTP successfully.');
+          } else if (shareResp.data.provider === 'mailto' && shareResp.data.mailto) {
+            // Open user's mail client as fallback
+            window.location.href = shareResp.data.mailto;
+          } else {
+            alert('Shared (fallback) - please check your email client.');
+          }
+        } else {
+          alert('Failed to prepare share email.');
+        }
       } else {
         alert("Failed to save form");
       }

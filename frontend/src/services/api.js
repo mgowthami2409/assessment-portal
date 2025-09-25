@@ -7,16 +7,24 @@ const API = axios.create({
 
 // Save form (new or update)
 export function submitInterviewForm(formData, interviewId) {
-  // Separate signatures out of formData and send explicitly
-  const { hiringManager, reviewingManager, divisionHR, ...formFields } = formData;
+  // Ensure interviewId and signatures are available inside formData for backend compatibility
+  const payloadFormData = { ...formData };
+  if (interviewId) payloadFormData.interviewId = interviewId;
+
+  // Normalise signatures if present at top-level
+  if (formData.hiringManager) payloadFormData.hiringManager = formData.hiringManager;
+  if (formData.reviewingManager) payloadFormData.reviewingManager = formData.reviewingManager;
+  if (formData.divisionHR) payloadFormData.divisionHR = formData.divisionHR;
+
+  // Also send signatures as a convenience top-level object (existing backend supports this)
   const signatures = {
-    hiringManager: hiringManager || null,
-    reviewingManager: reviewingManager || null,
-    divisionHR: divisionHR || null,
+    hiringManager: payloadFormData.hiringManager || null,
+    reviewingManager: payloadFormData.reviewingManager || null,
+    divisionHR: payloadFormData.divisionHR || null,
   };
 
   return API.post("/interview/submit", {
-    formData: formFields,
+    formData: payloadFormData,
     signatures,
     interviewId,
   });
@@ -25,6 +33,10 @@ export function submitInterviewForm(formData, interviewId) {
 // Fetch form by ID
 export function getInterviewById(interviewId) {
   return API.get(`/interview/${interviewId}`);
+}
+
+export function shareInterview(interviewId, toEmail) {
+  return API.post('/interview/share', { interviewId, toEmail });
 }
 
 export default API;
