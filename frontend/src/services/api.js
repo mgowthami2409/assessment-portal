@@ -7,13 +7,8 @@ const API = axios.create({
 
 // Save form (new or update)
 export function submitInterviewForm(formData, interviewId) {
-  // Separate signatures out of formData and send explicitly
   const { hiringManager, reviewingManager, divisionHR, ...formFields } = formData;
-  const signatures = {
-    hiringManager: hiringManager || null,
-    reviewingManager: reviewingManager || null,
-    divisionHR: divisionHR || null,
-  };
+  const signatures = { hiringManager, reviewingManager, divisionHR };
 
   return API.post("/interview/submit", {
     formData: formFields,
@@ -22,7 +17,7 @@ export function submitInterviewForm(formData, interviewId) {
   });
 }
 
-// Fetch form by ID
+// Fetch by ID
 export function getInterviewById(interviewId) {
   return API.get(`/interview/${interviewId}`);
 }

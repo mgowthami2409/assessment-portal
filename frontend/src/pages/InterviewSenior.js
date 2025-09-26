@@ -400,49 +400,50 @@ export default function InterviewAssessmentForm() {
   const [interviewId, setInterviewId] = useState(null);
   
   const handleSubmitAndShare = async () => {
-    try {
-      // Save form data to backend
-      // const response = await submitInterviewForm(formData, interviewId);
+  try {
+    // Save form data to backend
+    const payload = {
+      ...formData,
+      ...signatures,
+    };
 
-      const payload = {
-        ...formData,
-        ...signatures,
-      };
+    const response = await submitInterviewForm(payload, interviewId);
 
-      const response = await submitInterviewForm(payload, interviewId);
+    if (response.data.success) {
+      // Store interview ID for further updates
+      setInterviewId(response.data.interviewId);
+      alert("Form saved successfully!");
 
-      if (response.data.success) {
-        // Update interviewId if new
-        setInterviewId(response.data.interviewId);
-        alert("Form saved successfully!");
+      // Ask approver for email
+      const email = prompt("Enter email address to share with:");
+      if (!email) return alert("Email is required");
 
-        // Ask approver for email
-        const email = prompt("Enter email address to share with:");
-        if (!email) return alert("Email is required");
+      // Build the link and safely encode all fields for mailto
+      const link = `${window.location.origin}/interview/${response.data.interviewId}`;
+      const subject = encodeURIComponent("Interview Assessment Form");
+      const lines = [
+        `Candidate Name: ${formData.candidateName}`,
+        `Interviewer: ${formData.interviewerName}`,
+        `Position: ${formData.position}`,
+        `Location: ${formData.location}`,
+        `Date: ${formData.interviewDate}`,
+        "",
+        `Link to form: ${link}`,
+        "",
+        "Please review, update if required, and add your signature."
+      ];
+      const body = encodeURIComponent(lines.join("\n"));
 
-        // Build mail subject & body
-        const subject = encodeURIComponent("Interview Assessment Form");
-        const body = encodeURIComponent(`
-          Candidate Name: ${formData.candidateName}
-          Interviewer: ${formData.interviewerName}
-          Position: ${formData.position}
-          Location: ${formData.location}
-          Date: ${formData.interviewDate}
-
-          Link to form: ${window.location.origin}/interview/${response.data.interviewId}
-
-          Please review, update if required, and add your signature.
-                `);
-        // Open Outlook / default mail client
-        window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
-      } else {
-        alert("Failed to save form");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Error occurred while saving form");
+      // Open user email client with prefilled info
+      window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+    } else {
+      alert("Failed to save form");
     }
-  };
+  } catch (err) {
+    console.error(err);
+    alert("Error occurred while saving form");
+  }
+};
 
   // const handleDownloadPdf = () => {
   //   const input = printRef.current;
