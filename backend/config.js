@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 module.exports = {
-  PORT: process.env.PORT || 9090,
+  PORT: process.env.PORT || 10000,
   SMARTSHEET_API_TOKEN: process.env.SMARTSHEET_ACCESS_TOKEN,
   SMARTSHEET_BEHAVIORAL_SHEET_ID: process.env.SMARTSHEET_SHEET_ID,
   SMARTSHEET_INTERVIEW_SHEET_ID: process.env.SMARTSHEET_INTERVIEW_SHEET_ID
