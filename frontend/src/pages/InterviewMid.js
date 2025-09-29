@@ -783,6 +783,7 @@ export default function InterviewAssessmentForm() {
                 <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}>
                   {signatures.hiringManager ? (
                     <label style={{ cursor: "pointer", height: "100%" }}>
+                      
                       <img src={signatures.hiringManager} alt="Hiring Manager signature" style={styles.signatureImg} />
                       <input
                         type="file"

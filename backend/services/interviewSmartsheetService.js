@@ -51,6 +51,8 @@ async function addRowWithInterviewData(formData) {
     { columnId: columnMap.OverallComments, value: safeValue(formData.overallComments) },
     { columnId: columnMap.ReviewingManagerName, value: safeValue(formData.reviewingManagerName) },
     { columnId: columnMap.DivisionHRName, value: safeValue(formData.divisionHRName) },
+
+    // Signature fields
     { columnId: columnMap.HiringManagerSignature, value: safeValue(formData.hiringManager) },
     { columnId: columnMap.ReviewingManagerSignature, value: safeValue(formData.reviewingManager) },
     { columnId: columnMap.DivisionHRSignature, value: safeValue(formData.divisionHR) },
@@ -66,7 +68,7 @@ async function addRowWithInterviewData(formData) {
 
   const newRow = { toTop: true, cells };
   const addedRows = await smartsheet.sheets.addRows({ sheetId: SHEET_ID, body: [newRow] });
-  return addedRows.result[0].id.toString();  // Return the newly created Smartsheet row ID (interviewId)
+  return addedRows.result[0].id.toString(); // Return the newly created Smartsheet row ID (interviewId)
 }
 
 async function updateRowWithInterviewData(interviewId, formData) {
@@ -83,6 +85,8 @@ async function updateRowWithInterviewData(interviewId, formData) {
     { columnId: columnMap.OverallComments, value: safeValue(formData.overallComments) },
     { columnId: columnMap.ReviewingManagerName, value: safeValue(formData.reviewingManagerName) },
     { columnId: columnMap.DivisionHRName, value: safeValue(formData.divisionHRName) },
+
+    // Signature fields
     { columnId: columnMap.HiringManagerSignature, value: safeValue(formData.hiringManager) },
     { columnId: columnMap.ReviewingManagerSignature, value: safeValue(formData.reviewingManager) },
     { columnId: columnMap.DivisionHRSignature, value: safeValue(formData.divisionHR) },
@@ -97,7 +101,7 @@ async function updateRowWithInterviewData(interviewId, formData) {
 
   const rowMod = { id: Number(interviewId), cells };
   await smartsheet.sheets.updateRows({ sheetId: SHEET_ID, body: [rowMod] });
-  return interviewId;  // Return the existing interviewId for continuity
+  return interviewId; // Return the existing interviewId for continuity
 }
 
 async function getInterviewById(rowId) {
@@ -125,9 +129,12 @@ async function getInterviewById(rowId) {
     overallComments: getCellValue("OverallComments"),
     reviewingManagerName: getCellValue("ReviewingManagerName"),
     divisionHRName: getCellValue("DivisionHRName"),
+
+    // Signature data
     hiringManager: getCellValue("HiringManagerSignature"),
     reviewingManager: getCellValue("ReviewingManagerSignature"),
     divisionHR: getCellValue("DivisionHRSignature"),
+
     competencyNames: safeJSONParse(getCellValue("CompetencyNames")),
     behavioralAnswers: safeJSONParse(getCellValue("BehavioralAnswers")),
   };

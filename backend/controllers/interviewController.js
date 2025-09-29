@@ -18,11 +18,14 @@ async function submitInterviewForm(req, res) {
 
     // Merge interviewId (if provided at top-level) into formData so service can decide add vs update
     if (interviewId) bodyFormData.interviewId = interviewId;
+    if (signatures.hiringManager) bodyFormData.HiringManagerSignature = signatures.hiringManager;
+    if (signatures.reviewingManager) bodyFormData.ReviewingManagerSignature = signatures.reviewingManager;
+    if (signatures.divisionHR) bodyFormData.DivisionHRSignature = signatures.divisionHR;
 
     // Merge signatures into formData under the keys expected by the Smartsheet service
-    if (signatures.hiringManager) bodyFormData.hiringManager = signatures.hiringManager;
-    if (signatures.reviewingManager) bodyFormData.reviewingManager = signatures.reviewingManager;
-    if (signatures.divisionHR) bodyFormData.divisionHR = signatures.divisionHR;
+    // if (signatures.hiringManager) bodyFormData.hiringManager = signatures.hiringManager;
+    // if (signatures.reviewingManager) bodyFormData.reviewingManager = signatures.reviewingManager;
+    // if (signatures.divisionHR) bodyFormData.divisionHR = signatures.divisionHR;
 
     const result = await saveInterviewForm(bodyFormData, role);
     res.status(200).json({ success: true, interviewId: result });
