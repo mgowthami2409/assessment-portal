@@ -20,6 +20,8 @@ export function submitInterviewForm(formData, interviewId) {
 // Fetch by ID
 export function getInterviewById(interviewId) {
   return API.get(`/interview/${interviewId}`);
+  // navigate(`/interview/${level}/${interviewId}`);
+
 }
 
 export default API;

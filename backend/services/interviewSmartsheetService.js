@@ -1,4 +1,3 @@
-// interviewSmartsheetService.js
 const Smartsheet = require("smartsheet");
 const smartsheet = Smartsheet.createClient({
   accessToken: process.env.SMARTSHEET_ACCESS_TOKEN,
@@ -67,7 +66,7 @@ async function addRowWithInterviewData(formData) {
 
   const newRow = { toTop: true, cells };
   const addedRows = await smartsheet.sheets.addRows({ sheetId: SHEET_ID, body: [newRow] });
-  return addedRows.result[0].id.toString();
+  return addedRows.result[0].id.toString();  // Return the newly created Smartsheet row ID (interviewId)
 }
 
 async function updateRowWithInterviewData(interviewId, formData) {
@@ -98,7 +97,7 @@ async function updateRowWithInterviewData(interviewId, formData) {
 
   const rowMod = { id: Number(interviewId), cells };
   await smartsheet.sheets.updateRows({ sheetId: SHEET_ID, body: [rowMod] });
-  return interviewId;
+  return interviewId;  // Return the existing interviewId for continuity
 }
 
 async function getInterviewById(rowId) {

@@ -415,7 +415,14 @@ export default function InterviewAssessmentForm() {
       if (!email) return alert("Email is required");
 
       // Build the link and safely encode all fields for mailto
-      const link = `${window.location.origin}/interview/${response.data.interviewId}`;
+      const level = 'mid'; 
+      const newInterviewId = response.data.interviewId;
+setInterviewId(newInterviewId);
+const link = `${window.location.origin}/interview/${level}/${newInterviewId}`;
+
+      // const link = `${window.location.origin}/interview/${level}/${interviewId}`;
+
+      // const link = `${window.location.origin}/interview/${response.data.interviewId}`;
       const subject = encodeURIComponent("Interview Assessment Form");
       const lines = [
         `Candidate Name: ${formData.candidateName}`,
@@ -482,7 +489,7 @@ export default function InterviewAssessmentForm() {
         alt="Suprajit Logo"
         style={{ height: 60, marginRight: 16 }}
       />
-      <h2 style={styles.heading2}>Interview Assessment Form - Entry Level</h2>
+      <h2 style={styles.heading2}>Interview Assessment Form - Mid Level</h2>
 
       <label style={styles.inputLabel}>Candidate Name:</label>
       <input
