@@ -413,7 +413,7 @@ export default function InterviewAssessmentForm() {
       if (!email) return alert("Email is required");
 
       // Build the link and safely encode all fields for mailto
-      const link = `${window.location.origin}/interview/${response.data.interviewId}`;
+      const link = `${window.location.origin}/interview/enrty/${response.data.interviewId}`;
       const subject = encodeURIComponent("Interview Assessment Form");
       const lines = [
         `Candidate Name: ${formData.candidateName}`,
