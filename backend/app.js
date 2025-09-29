@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const { json, urlencoded } = require("body-parser");
-const path = require("path");          // Add this require here
+const path = require("path");              // Add this require here
 const { PORT } = require("./config");
 
 // Import routes
