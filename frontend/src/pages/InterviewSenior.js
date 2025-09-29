@@ -301,66 +301,6 @@ export default function InterviewAssessmentForm() {
     }
   }, [id]);
 
-  // const handleShareAndSave = async () => {
-  //   try {
-  //     // Prepare payload with form data and signatures
-  //     const payload = {
-  //       formData,
-  //       signatures,
-  //     };
-
-  //     // Save form data & signatures to backend
-  //     ponse = await submitInterviewForm(payload, interviewId);
-  //     if (response.data.success) {
-  //       // Update interviewId state if first save
-  //       if (!interviewId) setInterviewId(response.data.interviewId);
-
-  //       // Prompt for email after successful save
-  //       const email = prompt("Enter email address to share the interview assessment:");
-  //       if (!email) return alert("Email is required.");
-  //       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  //       if (!emailRegex.test(email)) return alert("Enter a valid email.");
-
-  //       // Prepare email content for mailto link
-  //       const subject = encodeURIComponent("Interview Assessment Form");
-  //       const bodyLines = [
-  //         `Candidate Name: ${formData.candidateName}`,
-  //         `Interviewer: ${formData.interviewerName}`,
-  //         `Position: ${formData.position}`,
-  //         `Location: ${formData.location}`,
-  //         `Strengths: ${formData.strengths}`,
-  //         `Areas of Improvement: ${formData.improvementAreas}`,
-  //         `Final Recommendation: ${formData.finalRecommendation}`,
-  //         `Overall Comments: ${formData.overallComments}`,
-  //         `Reviewing Manager Name: ${formData.reviewingManagerName}`,
-  //         `Division HR Name: ${formData.divisionHRName}`,
-  //         "",
-  //         "Behavioral Answers:",
-  //       ];
-
-  //       formData.behavioralAnswers.forEach((answer, idx) => {
-  //         bodyLines.push(initialValuesData[idx].title + ":");
-  //         answer.selectedQuestions.forEach(qi => {
-  //           bodyLines.push("- " + initialValuesData[idx].questions[qi]);
-  //         });
-  //         bodyLines.push(`Notes - Circumstance: ${answer.notes.circumstance}`);
-  //         bodyLines.push(`Notes - Action: ${answer.notes.action}`);
-  //         bodyLines.push(`Notes - Result: ${answer.notes.result}`);
-  //         bodyLines.push("");
-  //       });
-
-  //       const body = encodeURIComponent(bodyLines.join("\n"));
-  //       // Open mail client with prefilled values
-  //       window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
-  //     } else {
-  //       alert("Failed to save form before sharing.");
-  //     }
-  //   } catch (err) {
-  //     alert("Error saving form before sharing.");
-  //     console.error(err);
-  //   }
-  // };
-
   const toggleBehavioralQuestion = (valueIndex, questionIndex) => {
     setFormData((f) => {
       const answersCopy = f.behavioralAnswers.slice();
@@ -535,7 +475,7 @@ export default function InterviewAssessmentForm() {
         ))}
       </select>
 
-      <h3 style={{ ...styles.heading2, marginTop: 32 }}>Position-Specific Competencies</h3>
+      <h3 style={{ ...styles.heading2, marginTop: 32 }}>Position-Specific Competencies (To be updated by the Hiring Manager)</h3>
       {/* Blue header bar */}
       <div
         style={{
@@ -645,7 +585,47 @@ export default function InterviewAssessmentForm() {
         </tbody>
       </table>
 
-      <h3 style={{ ...styles.heading2, marginTop: 32 }}>Behavioral Interview Questions</h3>
+      <label style={styles.inputLabel}>Strengths:</label>
+      <textarea
+        style={styles.textareaStyle}
+        value={formData.strengths}
+        onChange={(e) => updateField("strengths", e.target.value)}
+      />
+
+      <label style={styles.inputLabel}>Areas of Improvement:</label>
+      <textarea
+        style={styles.textareaStyle}
+        value={formData.improvementAreas}
+        onChange={(e) => updateField("improvementAreas", e.target.value)}
+      />
+
+      <h3 style={{ ...styles.heading2, marginTop: 40 }}>Recommendation by the Hiring Manager</h3>
+      <div
+        style={{
+          backgroundColor: "white",
+          border: "1px solid #ccc",
+          borderRadius: 10,
+          padding: 16,
+          marginBottom: 32,
+          boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
+        }}
+      >
+        {["Proceed to Behavioral Interview", "Rejected"].map((opt) => (
+          <label key={opt} style={{ display: "block", marginBottom: 8, cursor: "pointer" }}>
+            <input
+              type="radio"
+              name="finalRecommendation"
+              value={opt}
+              checked={formData.finalRecommendation === opt}
+              onChange={(e) => updateField("finalRecommendation", e.target.value)}
+              style={{ marginRight: 8 }}
+            />
+            {opt}
+          </label>
+        ))}
+      </div>
+
+      <h3 style={{ ...styles.heading2, marginTop: 32 }}>Behavioral Interview Questions (To be updated by HR)</h3>
       <p style={{ fontStyle: "italic", color: "#555" }}>
         Behavioural interview questions use real past experiences to predict how someone might perform in the future.
       </p>
@@ -722,7 +702,7 @@ export default function InterviewAssessmentForm() {
         </div>
       ))}
 
-      <label style={styles.inputLabel}>Strengths:</label>
+      {/* <label style={styles.inputLabel}>Strengths:</label>
       <textarea
         style={styles.textareaStyle}
         value={formData.strengths}
@@ -734,9 +714,9 @@ export default function InterviewAssessmentForm() {
         style={styles.textareaStyle}
         value={formData.improvementAreas}
         onChange={(e) => updateField("improvementAreas", e.target.value)}
-      />
+      /> */}
 
-      <h3 style={{ ...styles.heading2, marginTop: 40 }}>Final Recommendation</h3>
+      <h3 style={{ ...styles.heading2, marginTop: 40 }}>Final Recommendation (To be updated by HR after discussion with Hiring Manager)</h3>
       <div
         style={{
           backgroundColor: "white",
