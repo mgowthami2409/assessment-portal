@@ -51,6 +51,7 @@ async function addRowWithInterviewData(formData) {
     { columnId: columnMap.OverallComments, value: safeValue(formData.overallComments) },
     { columnId: columnMap.ReviewingManagerName, value: safeValue(formData.reviewingManagerName) },
     { columnId: columnMap.DivisionHRName, value: safeValue(formData.divisionHRName) },
+    { columnId: columnMap.HiringManagerRecommendation, value: safeValue(formData.hiringManagerRecommendation) },
 
     // Signature fields
     { columnId: columnMap.HiringManagerSignature, value: safeValue(formData.hiringManager) },
@@ -59,9 +60,16 @@ async function addRowWithInterviewData(formData) {
   ];
 
   // JSON blobs
-  if (columnMap.CompetencyNames && formData.competencyNames) {
-    cells.push({ columnId: columnMap.CompetencyNames, value: safeJSONStringify(formData.competencyNames) });
+  // if (columnMap.CompetencyNames && formData.competencyNames) {
+  //   cells.push({ columnId: columnMap.CompetencyNames, value: safeJSONStringify(formData.competencyNames) });
+  // }
+  if (columnMap.Competencies && formData.competencies) {
+    cells.push({
+      columnId: columnMap.Competencies,
+      value: safeJSONStringify(formData.competencies),
+    });
   }
+
   if (columnMap.BehavioralAnswers && formData.behavioralAnswers) {
     cells.push({ columnId: columnMap.BehavioralAnswers, value: safeJSONStringify(formData.behavioralAnswers) });
   }
@@ -85,6 +93,7 @@ async function updateRowWithInterviewData(interviewId, formData) {
     { columnId: columnMap.OverallComments, value: safeValue(formData.overallComments) },
     { columnId: columnMap.ReviewingManagerName, value: safeValue(formData.reviewingManagerName) },
     { columnId: columnMap.DivisionHRName, value: safeValue(formData.divisionHRName) },
+    { columnId: columnMap.HiringManagerRecommendation, value: safeValue(formData.hiringManagerRecommendation) },
 
     // Signature fields
     { columnId: columnMap.HiringManagerSignature, value: safeValue(formData.hiringManager) },
@@ -92,9 +101,16 @@ async function updateRowWithInterviewData(interviewId, formData) {
     { columnId: columnMap.DivisionHRSignature, value: safeValue(formData.divisionHR) },
   ];
 
-  if (columnMap.CompetencyNames && formData.competencyNames) {
-    cells.push({ columnId: columnMap.CompetencyNames, value: safeJSONStringify(formData.competencyNames) });
+  // if (columnMap.CompetencyNames && formData.competencyNames) {
+  //   cells.push({ columnId: columnMap.CompetencyNames, value: safeJSONStringify(formData.competencyNames) });
+  // }
+  if (columnMap.Competencies && formData.competencies) {
+    cells.push({
+      columnId: columnMap.Competencies,
+      value: safeJSONStringify(formData.competencies),
+    });
   }
+
   if (columnMap.BehavioralAnswers && formData.behavioralAnswers) {
     cells.push({ columnId: columnMap.BehavioralAnswers, value: safeJSONStringify(formData.behavioralAnswers) });
   }
@@ -129,13 +145,15 @@ async function getInterviewById(rowId) {
     overallComments: getCellValue("OverallComments"),
     reviewingManagerName: getCellValue("ReviewingManagerName"),
     divisionHRName: getCellValue("DivisionHRName"),
+    hiringManagerRecommendation: getCellValue("HiringManagerRecommendation"),
 
     // Signature data
     hiringManager: getCellValue("HiringManagerSignature"),
     reviewingManager: getCellValue("ReviewingManagerSignature"),
     divisionHR: getCellValue("DivisionHRSignature"),
 
-    competencyNames: safeJSONParse(getCellValue("CompetencyNames")),
+    // competencyNames: safeJSONParse(getCellValue("CompetencyNames")),
+    competencies: safeJSONParse(getCellValue("Competencies")),
     behavioralAnswers: safeJSONParse(getCellValue("BehavioralAnswers")),
   };
 }

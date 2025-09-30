@@ -147,9 +147,11 @@ const styles = {
   },
   btnGroup: {
     marginTop: 30,
+    textAlign: "center",
+    alignItems: "center",
   },
   btn: {
-    padding: "12px 24px",
+    padding: "8px 16px",
     backgroundColor: "#bd2331",
     color: "#fff",
     border: "none",
@@ -189,7 +191,7 @@ const styles = {
   signatureTh: {
     border: "1px solid #000000",
     padding: 10,
-    backgroundColor: "#3afabe0",
+    backgroundColor: "#3fabe0",
     color: "black",
     fontWeight: 600,
     textAlign: "center",
@@ -217,12 +219,29 @@ const styles = {
   },
 };
 
+function normalizeBase64(signature) {
+  if (!signature) return "";
+  // If already a proper data URL, return as-is
+  if (signature.startsWith("data:image")) return signature;
+
+  // Guess image type by base64 hint (jpeg vs png)
+  const mimeType = signature.includes("/9j/") ? "image/jpeg" : "image/png";
+
+  return `data:${mimeType};base64,${signature}`;
+}
+
 export default function InterviewAssessmentForm() {
   const { id } = useParams();  // GET INTERVIEW ID FROM URL
   // const printRef = useRef();
   const [formData, setFormData] = useState({
     candidateName: "",
-    competencyNames: ["", "", "", "", ""], // 5 empty values for 5 rows
+    competencies: [
+      { name: "", comments: "", rating: null },
+      { name: "", comments: "", rating: null },
+      { name: "", comments: "", rating: null },
+      { name: "", comments: "", rating: null },
+    ],
+    // competencyNames: ["", "", "", ""], // 5 empty values for 5 rows
     interviewDate: "",
     interviewerName: "",
     position: "",
@@ -233,6 +252,7 @@ export default function InterviewAssessmentForm() {
     overallComments: "",
     reviewingManagerName: "",
     divisionHRName: "",
+    hiringManagerRecommendation: "",
     behavioralAnswers: initialValuesData.map(() => ({
       selectedQuestions: [],
       notes: { circumstance: "", action: "", result: "" },
@@ -271,7 +291,13 @@ export default function InterviewAssessmentForm() {
 
             setFormData({
               candidateName: data.candidateName || "",
-              competencyNames: data.competencyNames || ["", "", "", "", ""],
+              // competencyNames: data.competencyNames || ["", "", "", "", ""],
+              competencies: data.competencies || [
+                { name: "", comments: "", rating: null },
+                { name: "", comments: "", rating: null },
+                { name: "", comments: "", rating: null },
+                { name: "", comments: "", rating: null },
+              ],
               interviewerName: data.interviewerName || "",
               position: data.position || "",
               location: data.location || "",
@@ -283,6 +309,7 @@ export default function InterviewAssessmentForm() {
               reviewingManagerName: data.reviewingManagerName || "",
               divisionName: data.divisionName || "",
               behavioralAnswers: behavioralAnswers,
+              hiringManagerRecommendation: data.hiringManagerRecommendation || "",
             });
 
             setSignatures({
@@ -300,18 +327,6 @@ export default function InterviewAssessmentForm() {
         });
     }
   }, [id]);
-
-  const toggleBehavioralQuestion = (valueIndex, questionIndex) => {
-    setFormData((f) => {
-      const answersCopy = f.behavioralAnswers.slice();
-      const selectedQs = answersCopy[valueIndex].selectedQuestions.slice();
-      const idx = selectedQs.indexOf(questionIndex);
-      if (idx > -1) selectedQs.splice(idx, 1);
-      else selectedQs.push(questionIndex);
-      answersCopy[valueIndex].selectedQuestions = selectedQs;
-      return { ...f, behavioralAnswers: answersCopy };
-    });
-  };
 
   const updateBehavioralNote = (valueIndex, field, text) => {
     setFormData((f) => {
@@ -354,10 +369,6 @@ export default function InterviewAssessmentForm() {
       setInterviewId(response.data.interviewId);
       alert("Form saved successfully!");
 
-      // Ask approver for email
-      const email = prompt("Enter email address to share with:");
-      if (!email) return alert("Email is required");
-
       // Build the link and safely encode all fields for mailto
       const link = `${window.location.origin}/interview/senior/${response.data.interviewId}`;
       const subject = encodeURIComponent("Interview Assessment Form");
@@ -374,8 +385,8 @@ export default function InterviewAssessmentForm() {
       ];
       const body = encodeURIComponent(lines.join("\n"));
 
-      // Open user email client with prefilled info
-      window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+      // Open user's default email client with subject and body prefilled, but no recipient
+      window.location.href = `mailto:?subject=${subject}&body=${body}`;
     } else {
       alert("Failed to save form");
     }
@@ -384,40 +395,6 @@ export default function InterviewAssessmentForm() {
     alert("Error occurred while saving form");
   }
 };
-
-  // const handleDownloadPdf = () => {
-  //   const input = printRef.current;
-  //   html2canvas(input).then(canvas => {
-  //     const imgData = canvas.toDataURL('image/png');
-  //     const pdf = new jsPDF('p', 'pt', 'a4');
-  //     const pdfWidth = pdf.internal.pageSize.getWidth();
-  //     const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-  //     pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-  //     pdf.save('Interview_Assessment.pdf');
-  //   });
-  // };
-
-  // const [interviewId, setInterviewId] = useState(null); // store interview form ID if saved
-
-  // const handleSubmit = async () => {
-  //   try {
-  //     const payload = {
-  //       formData,
-  //       signatures,
-  //     };
-  //     const response = await submitInterviewForm(payload, interviewId);
-  //     if (response.data.success) {
-  //       alert("Form submitted successfully!");
-  //       if (!interviewId) setInterviewId(response.data.interviewId);
-  //     } else {
-  //       alert("Failed to submit form.");
-  //     }
-  //   } catch (err) {
-  //     alert("Error submitting form.");
-  //     console.error(err);
-  //   }
-  // };
 
   return (
     <div style={styles.container}>
@@ -541,49 +518,116 @@ export default function InterviewAssessmentForm() {
         </tbody>
       </table>
 
+      
       <table style={styles.tableStyle}>
         <thead>
           <tr>
             <th style={styles.thStyle}>Competency</th>
             <th style={styles.thStyle}>Comments</th>
-            {[4, 3, 2, 1].map(score => (
+            {[4, 3, 2, 1].map((score) => (
               <th key={score} style={styles.thStyle}>{score}</th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {[0, 1, 2, 3].map((idx) => (
+          {(formData.competencies || []).map((comp, idx) => (
             <tr key={idx}>
               <td style={styles.tdStyle}>
                 <input
                   type="text"
-                  value={formData.competencyNames[idx]}
+                  value={comp.name}
                   onChange={(e) => {
-                    const names = [...formData.competencyNames];
-                    names[idx] = e.target.value;
-                    setFormData((prev) => ({ ...prev, competencyNames: names }));
+                    const newComps = [...formData.competencies];
+                    newComps[idx] = { ...newComps[idx], name: e.target.value };
+                    setFormData((prev) => ({ ...prev, competencies: newComps }));
                   }}
-                  placeholder={`Enter Competency ${idx + 1} Name`}
+                  placeholder={`Enter Competency ${idx + 1}`}
                   style={{
                     width: "90%",
-                    padding: "8px",
-                    borderRadius: "4px",
-                    border: "1px solid #ccc",
+                    padding: 8,
+                    borderRadius: 4,
+                    border: "1px solid #ccc"
                   }}
                 />
               </td>
               <td style={styles.tdStyle}>
-                <textarea style={styles.textareaStyle} rows={3} />
+                <textarea
+                  rows={3}
+                  value={comp.comments}
+                  onChange={(e) => {
+                    const newComps = [...formData.competencies];
+                    newComps[idx] = { ...newComps[idx], comments: e.target.value };
+                    setFormData((prev) => ({ ...prev, competencies: newComps }));
+                  }}
+                  style={styles.textareaStyle}
+                />
               </td>
-              {[4, 3, 2, 1].map((val) => (
-                <td key={val} style={{ ...styles.tdStyle, textAlign: "center" }}>
-                  <input type="radio" name={`comp${idx + 1}`} value={val} />
+              {[4, 3, 2, 1].map((score) => (
+                <td key={score} style={{ ...styles.tdStyle, textAlign: "center" }}>
+                  <input
+                    type="radio"
+                    name={`rating-${idx}`}
+                    value={score}
+                    checked={comp.rating === score}
+                    onChange={(e) => {
+                      const newComps = [...formData.competencies];
+                      newComps[idx] = { ...newComps[idx], rating: Number(e.target.value) };
+                      setFormData((prev) => ({ ...prev, competencies: newComps }));
+                    }}
+                  />
                 </td>
               ))}
             </tr>
           ))}
         </tbody>
       </table>
+
+      <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <button
+          type="button"
+          onClick={() => {
+            setFormData(prev => ({
+              ...prev,
+              competencies: [...prev.competencies, { name: "", comments: "", rating: null }],
+            }));
+          }}
+          style={{
+            backgroundColor: "#bd2331",
+            color: "#fff",
+            padding: "8px 16px",
+            borderRadius: 6,
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          Add Competency Row
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setFormData(prev => {
+              if (prev.competencies.length > 4) {
+                const newComps = prev.competencies.slice(0, -1);
+                return { ...prev, competencies: newComps };
+              }
+              return prev;
+            });
+          }}
+          style={{
+            backgroundColor: "#1e4489",
+            color: "#fff",
+            padding: "8px 16px",
+            borderRadius: 6,
+            border: "none",
+            cursor: "pointer",
+          }}
+          disabled={formData.competencies.length <= 4}
+          title={formData.competencies.length <= 4 ? "Cannot delete mandatory rows" : "Delete last Competency Row"}
+        >
+          Delete Competency Row
+        </button>
+      </div>
 
       <label style={styles.inputLabel}>Strengths:</label>
       <textarea
@@ -614,10 +658,10 @@ export default function InterviewAssessmentForm() {
           <label key={opt} style={{ display: "block", marginBottom: 8, cursor: "pointer" }}>
             <input
               type="radio"
-              name="finalRecommendation"
+              name="hiringManagerRecommendation"  // changed from finalRecommendation
               value={opt}
-              checked={formData.finalRecommendation === opt}
-              onChange={(e) => updateField("finalRecommendation", e.target.value)}
+              checked={formData.hiringManagerRecommendation === opt}
+              onChange={e => updateField("hiringManagerRecommendation", e.target.value)}
               style={{ marginRight: 8 }}
             />
             {opt}
@@ -636,34 +680,34 @@ export default function InterviewAssessmentForm() {
       {initialValuesData.map((value, idx) => (
         <div key={value.id} style={styles.questionBlock}>
           <h4 style={styles.questionBlockTitle}>{value.title}</h4>
-          {value.questions.map((q, qi) => (
-            <label
-              key={qi}
-              style={{
-                display: "flex",
-                alignItems: "flex-start",
-                marginBottom: 8,
-                cursor: "pointer",
-                color: "#333",
-                fontWeight: 400,
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={
-                  formData.behavioralAnswers &&
-                  formData.behavioralAnswers[idx] &&
-                  Array.isArray(formData.behavioralAnswers[idx].selectedQuestions) &&
-                  formData.behavioralAnswers[idx].selectedQuestions.includes(qi)
-                    ? true
-                    : false
-                }
-                onChange={() => toggleBehavioralQuestion(idx, qi)}
-                style={{ marginRight: 8, marginTop: 6 }}
-              />
-              <div style={{ lineHeight: 1.4 }}>{q}</div>
-            </label>
-          ))}
+          <label htmlFor={`behavioral-select-${idx}`} style={{ fontWeight: 600, marginBottom: 8, display: 'block' }}>
+            Select one question:
+          </label>
+          <select
+            id={`behavioral-select-${idx}`}
+            value={
+              formData.behavioralAnswers &&
+              formData.behavioralAnswers[idx] &&
+              formData.behavioralAnswers[idx].selectedQuestions.length > 0
+                ? formData.behavioralAnswers[idx].selectedQuestions[0]
+                : ""
+            }
+            onChange={(e) => {
+              const selected = Number(e.target.value);
+              setFormData((f) => {
+                const answersCopy = [...f.behavioralAnswers];
+                answersCopy[idx].selectedQuestions = selected >= 0 ? [selected] : [];
+                return { ...f, behavioralAnswers: answersCopy };
+              });
+            }}
+            style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ccc" }}
+          >
+            <option value="">-- Select a question --</option>
+            {value.questions.map((q, qi) => (
+              <option key={qi} value={qi}>{q}</option>
+            ))}
+          </select>
+
           <div style={{ marginTop: 12, marginBottom: 6, fontWeight: 600 }}>
             Interview Notes:{" "}
             <span style={{ fontStyle: "italic", color: "#555", marginLeft: 8, fontSize: 13 }}>
@@ -701,20 +745,6 @@ export default function InterviewAssessmentForm() {
           </table>
         </div>
       ))}
-
-      {/* <label style={styles.inputLabel}>Strengths:</label>
-      <textarea
-        style={styles.textareaStyle}
-        value={formData.strengths}
-        onChange={(e) => updateField("strengths", e.target.value)}
-      />
-
-      <label style={styles.inputLabel}>Areas of Improvement:</label>
-      <textarea
-        style={styles.textareaStyle}
-        value={formData.improvementAreas}
-        onChange={(e) => updateField("improvementAreas", e.target.value)}
-      /> */}
 
       <h3 style={{ ...styles.heading2, marginTop: 40 }}>Final Recommendation (To be updated by HR after discussion with Hiring Manager)</h3>
       <div
@@ -767,13 +797,21 @@ export default function InterviewAssessmentForm() {
                 <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}>
                   {signatures.hiringManager ? (
                     <label style={{ cursor: "pointer", height: "100%" }}>
-                      <img src={signatures.hiringManager} alt="Hiring Manager signature" style={styles.signatureImg} />
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleSignatureUpload("hiringManager", e)}
-                        style={{ display: "none" }}
-                      />
+                      {/* <img src={signatures.hiringManager} alt="Hiring Manager signature" style={styles.signatureImg} /> */}
+                      {normalizeBase64(signatures.hiringManager) ? (
+                        <img
+                          src={normalizeBase64(signatures.hiringManager)}
+                          alt="Hiring Manager signature"
+                          style={styles.signatureImg}
+                        />
+                      ) : (
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleSignatureUpload("hiringManager", e)}
+                          style={{ margin: '0 auto', display: 'block' }}
+                        />
+                      )}
                     </label>
                   ) : (
                     <>
@@ -898,9 +936,9 @@ export default function InterviewAssessmentForm() {
         onClick={() => window.print()}
         style={{
           marginTop: 20,
-          backgroundColor: '#bd2331',
+          backgroundColor: '#1e4489',
           color: '#fff',
-          padding: '12px 24px',
+          padding: '8px 16px',
           borderRadius: 6,
           cursor: 'pointer',
           fontSize: 16,
