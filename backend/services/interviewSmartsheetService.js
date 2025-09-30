@@ -16,9 +16,25 @@ async function getSheetColumns() {
   return cachedColumns;
 }
 
-// Helper function to safely get string value or empty string
 function safeValue(val) {
   return val === undefined || val === null ? "" : val.toString();
+}
+
+function safeJSONStringify(val) {
+  try {
+    return val ? JSON.stringify(val) : "";
+  } catch (e) {
+    console.warn("JSON stringify error", e);
+    return "";
+  }
+}
+
+function safeJSONParse(val) {
+  try {
+    return val ? JSON.parse(val) : null;
+  } catch {
+    return null;
+  }
 }
 
 async function addRowWithInterviewData(formData) {
@@ -35,16 +51,32 @@ async function addRowWithInterviewData(formData) {
     { columnId: columnMap.OverallComments, value: safeValue(formData.overallComments) },
     { columnId: columnMap.ReviewingManagerName, value: safeValue(formData.reviewingManagerName) },
     { columnId: columnMap.DivisionHRName, value: safeValue(formData.divisionHRName) },
+    { columnId: columnMap.HiringManagerRecommendation, value: safeValue(formData.hiringManagerRecommendation) },
+
+    // Signature fields
     { columnId: columnMap.HiringManagerSignature, value: safeValue(formData.hiringManager) },
     { columnId: columnMap.ReviewingManagerSignature, value: safeValue(formData.reviewingManager) },
     { columnId: columnMap.DivisionHRSignature, value: safeValue(formData.divisionHR) },
   ];
+
+  // JSON blobs
+  // if (columnMap.CompetencyNames && formData.competencyNames) {
+  //   cells.push({ columnId: columnMap.CompetencyNames, value: safeJSONStringify(formData.competencyNames) });
+  // }
+  if (columnMap.Competencies && formData.competencies) {
+    cells.push({
+      columnId: columnMap.Competencies,
+      value: safeJSONStringify(formData.competencies),
+    });
+  }
+
+  if (columnMap.BehavioralAnswers && formData.behavioralAnswers) {
+    cells.push({ columnId: columnMap.BehavioralAnswers, value: safeJSONStringify(formData.behavioralAnswers) });
+  }
+
   const newRow = { toTop: true, cells };
-  const addedRows = await smartsheet.sheets.addRows({
-    sheetId: SHEET_ID,
-    body: [newRow],
-  });
-  return addedRows.result[0].id.toString();
+  const addedRows = await smartsheet.sheets.addRows({ sheetId: SHEET_ID, body: [newRow] });
+  return addedRows.result[0].id.toString(); // Return the newly created Smartsheet row ID (interviewId)
 }
 
 async function updateRowWithInterviewData(interviewId, formData) {
@@ -61,28 +93,45 @@ async function updateRowWithInterviewData(interviewId, formData) {
     { columnId: columnMap.OverallComments, value: safeValue(formData.overallComments) },
     { columnId: columnMap.ReviewingManagerName, value: safeValue(formData.reviewingManagerName) },
     { columnId: columnMap.DivisionHRName, value: safeValue(formData.divisionHRName) },
+    { columnId: columnMap.HiringManagerRecommendation, value: safeValue(formData.hiringManagerRecommendation) },
+
+    // Signature fields
     { columnId: columnMap.HiringManagerSignature, value: safeValue(formData.hiringManager) },
     { columnId: columnMap.ReviewingManagerSignature, value: safeValue(formData.reviewingManager) },
     { columnId: columnMap.DivisionHRSignature, value: safeValue(formData.divisionHR) },
   ];
+
+  // if (columnMap.CompetencyNames && formData.competencyNames) {
+  //   cells.push({ columnId: columnMap.CompetencyNames, value: safeJSONStringify(formData.competencyNames) });
+  // }
+  if (columnMap.Competencies && formData.competencies) {
+    cells.push({
+      columnId: columnMap.Competencies,
+      value: safeJSONStringify(formData.competencies),
+    });
+  }
+
+  if (columnMap.BehavioralAnswers && formData.behavioralAnswers) {
+    cells.push({ columnId: columnMap.BehavioralAnswers, value: safeJSONStringify(formData.behavioralAnswers) });
+  }
+
   const rowMod = { id: Number(interviewId), cells };
-  await smartsheet.sheets.updateRows({
-    sheetId: SHEET_ID,
-    body: [rowMod],
-  });
-  return interviewId;
+  await smartsheet.sheets.updateRows({ sheetId: SHEET_ID, body: [rowMod] });
+  return interviewId; // Return the existing interviewId for continuity
 }
 
 async function getInterviewById(rowId) {
   const sheet = await smartsheet.sheets.getSheet({ id: SHEET_ID });
   const row = sheet.rows.find(r => r.id.toString() === rowId);
   if (!row) return null;
+
   const columnMap = await getSheetColumns();
   function getCellValue(columnName) {
     const colId = columnMap[columnName];
     const cell = row.cells.find(c => c.columnId === colId);
     return cell ? cell.value : "";
   }
+
   return {
     interviewId: row.id.toString(),
     candidateName: getCellValue("CandidateName"),
@@ -96,14 +145,17 @@ async function getInterviewById(rowId) {
     overallComments: getCellValue("OverallComments"),
     reviewingManagerName: getCellValue("ReviewingManagerName"),
     divisionHRName: getCellValue("DivisionHRName"),
+    hiringManagerRecommendation: getCellValue("HiringManagerRecommendation"),
+
+    // Signature data
     hiringManager: getCellValue("HiringManagerSignature"),
     reviewingManager: getCellValue("ReviewingManagerSignature"),
     divisionHR: getCellValue("DivisionHRSignature"),
+
+    // competencyNames: safeJSONParse(getCellValue("CompetencyNames")),
+    competencies: safeJSONParse(getCellValue("Competencies")),
+    behavioralAnswers: safeJSONParse(getCellValue("BehavioralAnswers")),
   };
 }
 
-module.exports = {
-  addRowWithInterviewData,
-  updateRowWithInterviewData,
-  getInterviewById,
-};
+module.exports = { addRowWithInterviewData, updateRowWithInterviewData, getInterviewById };

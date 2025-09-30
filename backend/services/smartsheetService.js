@@ -76,7 +76,7 @@ async function attachPdfToRow(rowId, pdfBuffer) {
       },
       maxContentLength: Infinity,
       maxBodyLength: Infinity,
-      timeout: 250000
+      timeout: 300000
     });
 
     console.log("✅ PDF attached successfully:", response.data);
