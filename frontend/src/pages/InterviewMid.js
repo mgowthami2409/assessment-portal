@@ -217,13 +217,56 @@ const styles = {
 
 function normalizeBase64(signature) {
   if (!signature) return "";
-  // If already a proper data URL, return as-is
-  if (signature.startsWith("data:image")) return signature;
 
-  // Guess image type by base64 hint (jpeg vs png)
-  const mimeType = signature.includes("/9j/") ? "image/jpeg" : "image/png";
+  // If already a full data URL, return it unchanged
+  if (signature.startsWith("data:image/")) {
+    return signature;
+  }
 
-  return `data:${mimeType};base64,${signature}`;
+  // Check typical base64 header for JPEG or PNG
+  if (signature.startsWith("/9j/")) {
+    return `data:image/jpeg;base64,${signature}`;
+  }
+
+  if (signature.startsWith("iVBORw0KGgo")) {
+    // PNG file signature in base64
+    return `data:image/png;base64,${signature}`;
+  }
+
+  // Default fallback, assume JPEG
+  return `data:image/jpeg;base64,${signature}`;
+}
+
+function compressAndResizeImage(base64Str, maxWidth = 300, maxHeight = 100, quality = 0.6) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+
+      // Maintain aspect ratio while constraining to max dimensions
+      if (width > maxWidth) {
+        height = (height * maxWidth) / width;
+        width = maxWidth;
+      }
+      if (height > maxHeight) {
+        width = (width * maxHeight) / height;
+        height = maxHeight;
+      }
+
+      // Create canvas and draw compressed resized image
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Export compressed base64 JPEG string
+      const compressedBase64 = canvas.toDataURL("image/jpeg", quality);
+      resolve(compressedBase64);
+    };
+    img.onerror = () => reject(new Error("Image load failed"));
+    img.src = base64Str;
+  });
 }
 
 export default function InterviewAssessmentForm() {
@@ -332,19 +375,23 @@ export default function InterviewAssessmentForm() {
     });
   };
 
-  const handleSignatureUpload = (role, e) => {
+  const handleSignatureUpload = async (role, e) => {
     const file = e.target.files[0];
     if (file && file.type.startsWith("image/")) {
       const reader = new FileReader();
-      reader.onload = (ev) => {
-        setSignatures((prev) => ({
-          ...prev,
-          [role]: ev.target.result,
-        }));
+      reader.onload = async (ev) => {
+        try {
+          // Compress and resize uploaded image
+          const compressedBase64 = await compressAndResizeImage(ev.target.result);
+          setSignatures((prev) => ({ ...prev, [role]: compressedBase64 }));
+        } catch (err) {
+          alert("Error processing signature image.");
+          console.error(err);
+        }
       };
       reader.readAsDataURL(file);
     } else {
-      alert("Please select a valid image file for the signature.");
+      alert("Please upload a valid image file.");
     }
   };
 
@@ -795,10 +842,7 @@ export default function InterviewAssessmentForm() {
                     <label style={{ cursor: "pointer", height: "100%" }}>
                       {/* <img src={signatures.hiringManager} alt="Hiring Manager signature" style={styles.signatureImg} /> */}
                       {normalizeBase64(signatures.hiringManager) ? (
-                        <img
-                          src={normalizeBase64(signatures.hiringManager)}
-                          alt="Hiring Manager signature"
-                          style={styles.signatureImg}
+                        <img src={normalizeBase64(signatures.hiringManager)} alt="Hiring Manager Signature" style={styles.signatureImg}
                         />
                       ) : (
                         <input
