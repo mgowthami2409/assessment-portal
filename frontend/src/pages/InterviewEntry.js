@@ -794,13 +794,6 @@ export default function InterviewAssessmentForm() {
         ))}
       </div>
 
-      <label style={styles.inputLabel}>Overall Comments:</label>
-      <textarea
-        style={styles.textareaStyle}
-        value={formData.overallComments}
-        onChange={(e) => updateField("overallComments", e.target.value)}
-      />
-
       <h3 style={{ ...styles.heading2, marginTop: 40 }}>Signatures</h3>
       <table style={styles.signatureTable}>
         <thead>

@@ -220,15 +220,29 @@ const styles = {
   },
 };
 
+function normalizeBase64(signature) {
+  if (!signature) return "";
+  // If already a proper data URL, return as-is
+  if (signature.startsWith("data:image")) return signature;
+
+  // Guess image type by base64 hint (jpeg vs png)
+  const mimeType = signature.includes("/9j/") ? "image/jpeg" : "image/png";
+
+  return `data:${mimeType};base64,${signature}`;
+}
+
 export default function InterviewAssessmentForm() {
-  const { id: interviewIdFromParams } = useParams();
-
-  const [interviewId, setInterviewId] = useState(null);
-  const currentInterviewId = interviewId || interviewIdFromParams;
-
+  const { id } = useParams();  // GET INTERVIEW ID FROM URL
+  // const printRef = useRef();
   const [formData, setFormData] = useState({
     candidateName: "",
-    competencies: Array(4).fill({ name: "", comments: "", rating: null }),
+    competencies: [
+      { name: "", comments: "", rating: null },
+      { name: "", comments: "", rating: null },
+      { name: "", comments: "", rating: null },
+      { name: "", comments: "", rating: null },
+    ],
+    // competencyNames: ["", "", "", ""], // 5 empty values for 5 rows
     interviewDate: "",
     interviewerName: "",
     position: "",
@@ -246,141 +260,142 @@ export default function InterviewAssessmentForm() {
     })),
   });
 
-  const updateField = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const updateBehavioralNote = (idx, field, value) => {
-    setFormData((prev) => {
-      const copy = [...prev.behavioralAnswers];
-      copy[idx].notes[field] = value;
-      return { ...prev, behavioralAnswers: copy };
-    });
-  };
-
+  // Signature image state
   const [signatures, setSignatures] = useState({
     hiringManager: null,
     reviewingManager: null,
     divisionHR: null,
   });
 
-  const [signaturePreviews, setSignaturePreviews] = useState({
-    hiringManager: null,
-    reviewingManager: null,
-    divisionHR: null,
-  });
+  const updateField = (field, value) => {
+    setFormData((f) => ({ ...f, [field]: value }));
+  };
 
-  // Function to handle signature selection
+  
+  useEffect(() => {
+    if (id) {
+      getInterviewById(id)
+        .then((res) => {
+          if (res.data.success) {
+            const data = res.data.interview;
+
+            // Ensure behavioralAnswers array is available, else initialize default
+            const behavioralAnswers =
+              Array.isArray(data.behavioralAnswers) && data.behavioralAnswers.length === 6
+                ? data.behavioralAnswers
+                : Array(6)
+                    .fill()
+                    .map(() => ({
+                      selectedQuestions: [],
+                      notes: { circumstance: "", action: "", result: "" },
+                    }));
+
+            setFormData({
+              candidateName: data.candidateName || "",
+              // competencyNames: data.competencyNames || ["", "", "", "", ""],
+              competencies: data.competencies || [
+                { name: "", comments: "", rating: null },
+                { name: "", comments: "", rating: null },
+                { name: "", comments: "", rating: null },
+                { name: "", comments: "", rating: null },
+              ],
+              interviewerName: data.interviewerName || "",
+              position: data.position || "",
+              location: data.location || "",
+              interviewDate: data.interviewDate || "",
+              strengths: data.strengths || "",
+              improvementAreas: data.improvementAreas || "",
+              finalRecommendation: data.finalRecommendation || "",
+              overallComments: data.overallComments || "",
+              reviewingManagerName: data.reviewingManagerName || "",
+              divisionName: data.divisionName || "",
+              behavioralAnswers: behavioralAnswers,
+              hiringManagerRecommendation: data.hiringManagerRecommendation || "",
+            });
+
+            setSignatures({
+              hiringManager: data.hiringManager || null,
+              reviewingManager: data.reviewingManager || null,
+              divisionHR: data.divisionHR || null,
+            });
+          } else {
+            alert("Interview data not found.");
+          }
+        })
+        .catch((err) => {
+          alert("Failed to fetch interview data.");
+          console.error(err);
+        });
+    }
+  }, [id]);
+
+  const updateBehavioralNote = (valueIndex, field, text) => {
+    setFormData((f) => {
+      const answersCopy = f.behavioralAnswers.slice();
+      answersCopy[valueIndex].notes[field] = text;
+      return { ...f, behavioralAnswers: answersCopy };
+    });
+  };
+
   const handleSignatureUpload = (role, e) => {
     const file = e.target.files[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
+    if (file && file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setSignatures((prev) => ({
+          ...prev,
+          [role]: ev.target.result,
+        }));
+      };
+      reader.readAsDataURL(file);
+    } else {
       alert("Please select a valid image file for the signature.");
-      return;
     }
-
-    setSignatures((prev) => ({ ...prev, [role]: file }));
-
-    // Show preview
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      setSignaturePreviews((prev) => ({ ...prev, [role]: ev.target.result }));
-    };
-    reader.readAsDataURL(file);
   };
 
-  useEffect(() => {
-    if (!currentInterviewId) return;
-
-    getInterviewById(currentInterviewId)
-      .then(async (res) => {
-        if (!res.data.success) return alert("Interview data not found");
-        const data = res.data.interview;
-
-        setFormData({
-          candidateName: data.candidateName || "",
-          competencies: data.competencies || Array(4).fill({ name: "", comments: "", rating: null }),
-          interviewDate: data.interviewDate || "",
-          interviewerName: data.interviewerName || "",
-          position: data.position || "",
-          location: data.location || "",
-          strengths: data.strengths || "",
-          improvementAreas: data.improvementAreas || "",
-          finalRecommendation: data.finalRecommendation || "",
-          overallComments: data.overallComments || "",
-          reviewingManagerName: data.reviewingManagerName || "",
-          divisionHRName: data.divisionHRName || "",
-          hiringManagerRecommendation: data.hiringManagerRecommendation || "",
-          behavioralAnswers: data.behavioralAnswers?.length === 6 ? data.behavioralAnswers : initialValuesData.map(() => ({
-            selectedQuestions: [],
-            notes: { circumstance: "", action: "", result: "" },
-          })),
-        });
-
-        // Fetch signature attachment URLs from backend per role
-        const roles = ["hiringManager", "reviewingManager", "divisionHR"];
-        const urls = {};
-        for (const role of roles) {
-          try {
-            const sigRes = await getSignatureUrl(currentInterviewId, role);
-            if (sigRes.success && sigRes.url) {
-              urls[role] = sigRes.url;
-            }
-          } catch (err) {
-            console.warn(`No signature found for ${role}`, err);
-          }
-        }
-        setSignaturePreviews(urls);
-      })
-      .catch(err => {
-        console.error(err);
-        alert("Failed to fetch interview data.");
-      });
-  }, [currentInterviewId]);
-
+  const [interviewId, setInterviewId] = useState(null);
+  
   const handleSubmitAndShare = async () => {
-    try {
-      // Submit form data WITHOUT signatures (they upload separately)
-      const formDataToSubmit = { ...formData };
-      
-      // Remove signature files from formData if present
-      delete formDataToSubmit.hiringManager;
-      delete formDataToSubmit.reviewingManager;
-      delete formDataToSubmit.divisionHR;
+  try {
+    // Save form data to backend
+    const payload = {
+      ...formData,
+      ...signatures,
+    };
 
-      const response = await submitInterviewForm(formDataToSubmit, interviewId);
+    const response = await submitInterviewForm(payload, interviewId);
 
-      if (!response.data.success) throw new Error("Form submission failed");
-
-      const newId = response.data.interviewId;
-      setInterviewId(newId);
-
-      // Upload signatures separately if they exist
-      for (const role of ["hiringManager", "reviewingManager", "divisionHR"]) {
-        const file = signatures[role];
-        if (file instanceof File) {
-          try {
-            await uploadSignatureAttachment(newId, file, role);
-          } catch (err) {
-            console.error(`Failed to upload ${role} signature`, err);
-          }
-        }
-      }
-
+    if (response.data.success) {
+      // Store interview ID for further updates
+      setInterviewId(response.data.interviewId);
       alert("Form saved successfully!");
 
-      // Mail sharing logic...
-      const link = `${window.location.origin}/interview/entry/${newId}`;
+      // Build the link and safely encode all fields for mailto
+      const link = `${window.location.origin}/interview/mid/${response.data.interviewId}`;
       const subject = encodeURIComponent("Interview Assessment Form");
-      const body = encodeURIComponent(
-        `Candidate Name: ${formData.candidateName}\nInterviewer: ${formData.interviewerName}\nPosition: ${formData.position}\nLocation: ${formData.location}\nDate: ${formData.interviewDate}\n\nLink to form: ${link}\n\nPlease review, update if required, and add your signature.`
-      );
+      const lines = [
+        `Candidate Name: ${formData.candidateName}`,
+        `Interviewer: ${formData.interviewerName}`,
+        `Position: ${formData.position}`,
+        `Location: ${formData.location}`,
+        `Date: ${formData.interviewDate}`,
+        "",
+        `Link to form: ${link}`,
+        "",
+        "Please review, update if required, and add your signature."
+      ];
+      const body = encodeURIComponent(lines.join("\n"));
+
+      // Open user's default email client with subject and body prefilled, but no recipient
       window.location.href = `mailto:?subject=${subject}&body=${body}`;
-    } catch (err) {
-      console.error(err);
-      alert("Error saving form");
+    } else {
+      alert("Failed to save form");
     }
-  };
+  } catch (err) {
+    console.error(err);
+    alert("Error occurred while saving form");
+  }
+};
 
   return (
     <div style={styles.container}>
@@ -629,6 +644,13 @@ export default function InterviewAssessmentForm() {
         onChange={(e) => updateField("improvementAreas", e.target.value)}
       />
 
+      <label style={styles.inputLabel}>Overall Comments:</label>
+      <textarea
+        style={styles.textareaStyle}
+        value={formData.overallComments}
+        onChange={(e) => updateField("overallComments", e.target.value)}
+      />
+
       <h3 style={{ ...styles.heading2, marginTop: 40 }}>Recommendation by the Hiring Manager</h3>
       <div
         style={{
@@ -732,6 +754,27 @@ export default function InterviewAssessmentForm() {
         </div>
       ))}
 
+      <label style={styles.inputLabel}>Strengths:</label>
+      <textarea
+        style={styles.textareaStyle}
+        value={formData.strengths}
+        onChange={(e) => updateField("strengths", e.target.value)}
+      />
+
+      <label style={styles.inputLabel}>Areas of Improvement:</label>
+      <textarea
+        style={styles.textareaStyle}
+        value={formData.improvementAreas}
+        onChange={(e) => updateField("improvementAreas", e.target.value)}
+      />
+
+      <label style={styles.inputLabel}>Overall Comments:</label>
+      <textarea
+        style={styles.textareaStyle}
+        value={formData.overallComments}
+        onChange={(e) => updateField("overallComments", e.target.value)}
+      />
+
       <h3 style={{ ...styles.heading2, marginTop: 40 }}>Final Recommendation (To be updated by HR after discussion with Hiring Manager)</h3>
       <div
         style={{
@@ -758,85 +801,56 @@ export default function InterviewAssessmentForm() {
         ))}
       </div>
 
-      <label style={styles.inputLabel}>Overall Comments:</label>
-      <textarea
-        style={styles.textareaStyle}
-        value={formData.overallComments}
-        onChange={(e) => updateField("overallComments", e.target.value)}
-      />
-
       <h3 style={{ ...styles.heading2, marginTop: 40 }}>Signatures</h3>
       <table style={styles.signatureTable}>
         <thead>
           <tr>
             <th style={styles.signatureTh}>Hiring Manager</th>
-            <th style={styles.signatureTh}>Reviewing Manager</th>
             <th style={styles.signatureTh}>Division HR</th>
+            <th style={styles.signatureTh}>Reviewing Manager</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            {/* 🔹 Hiring Manager Signature */}
+            {/* Hiring Manager Signature */}
             <td style={styles.signatureBox}>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100%" }}>
+                {/* No name input for Hiring Manager as per current requirement */}
                 <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}>
-                  {signaturePreviews.hiringManager ? (
-                    <img
-                      src={signaturePreviews.hiringManager}
-                      alt="Hiring Manager Signature"
-                      style={styles.signatureImg}
-                    />
+                  {signatures.hiringManager ? (
+                    <label style={{ cursor: "pointer", height: "100%" }}>
+                      {/* <img src={signatures.hiringManager} alt="Hiring Manager signature" style={styles.signatureImg} /> */}
+                      {normalizeBase64(signatures.hiringManager) ? (
+                        <img
+                          src={normalizeBase64(signatures.hiringManager)}
+                          alt="Hiring Manager signature"
+                          style={styles.signatureImg}
+                        />
+                      ) : (
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleSignatureUpload("hiringManager", e)}
+                          style={{ margin: '0 auto', display: 'block' }}
+                        />
+                      )}
+                    </label>
                   ) : (
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleSignatureUpload("hiringManager", e)}
-                      style={{ margin: "0 auto", display: "block" }}
-                    />
+                    <>
+                      {/* <span style={{ color: "#bbb", fontSize: 13, margin: "10px 0 4px 0" }}>No signature</span> */}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleSignatureUpload("hiringManager", e)}
+                        style={{ margin: "0 auto", display: "block" }}
+                      />
+                    </>
                   )}
                 </div>
               </div>
             </td>
 
-            {/* 🔹 Reviewing Manager Signature + Name */}
-            <td style={styles.signatureBox}>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100%" }}>
-                <input
-                  type="text"
-                  placeholder="Reviewing Manager Name"
-                  value={formData.reviewingManagerName || ""}
-                  onChange={(e) => updateField("reviewingManagerName", e.target.value)}
-                  style={{
-                    marginTop: 6,
-                    marginBottom: 4,
-                    padding: "4px 6px",
-                    fontSize: 13,
-                    borderRadius: 4,
-                    border: "1px solid #ccc",
-                    width: "85%",
-                    textAlign: "center",
-                  }}
-                />
-                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}>
-                  {signaturePreviews.reviewingManager ? (
-                    <img
-                      src={signaturePreviews.reviewingManager}
-                      alt="Reviewing Manager Signature"
-                      style={styles.signatureImg}
-                    />
-                  ) : (
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleSignatureUpload("reviewingManager", e)}
-                      style={{ margin: "0 auto", display: "block" }}
-                    />
-                  )}
-                </div>
-              </div>
-            </td>
-
-            {/* 🔹 Division HR Signature + Name */}
+            {/* Division HR Signature & Name */}
             <td style={styles.signatureBox}>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100%" }}>
                 <input
@@ -846,34 +860,93 @@ export default function InterviewAssessmentForm() {
                   onChange={(e) => updateField("divisionHRName", e.target.value)}
                   style={{
                     marginTop: 6,
-                    marginBottom: 4,
+                    marginBottom: 2,
                     padding: "4px 6px",
                     fontSize: 13,
                     borderRadius: 4,
                     border: "1px solid #ccc",
                     width: "85%",
+                    alignSelf: "center",
+                    boxSizing: "border-box",
+                    height: 26,
                     textAlign: "center",
                   }}
                 />
                 <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}>
-                  {signaturePreviews.divisionHR ? (
-                    <img
-                      src={signaturePreviews.divisionHR}
-                      alt="Division HR Signature"
-                      style={styles.signatureImg}
-                    />
+                  {signatures.divisionHR ? (
+                    <label style={{ cursor: "pointer", height: "100%" }}>
+                      <img src={signatures.divisionHR} alt="Division HR signature" style={styles.signatureImg} />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleSignatureUpload("divisionHR", e)}
+                        style={{ display: "none" }}
+                      />
+                    </label>
                   ) : (
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleSignatureUpload("divisionHR", e)}
-                      style={{ margin: "0 auto", display: "block" }}
-                    />
+                    <>
+                      {/* <span style={{ color: "#bbb", fontSize: 13, margin: "10px 0 4px 0" }}>No signature</span> */}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleSignatureUpload("divisionHR", e)}
+                        style={{ margin: "0 auto", display: "block" }}
+                      />
+                    </>
+                  )}
+                </div>
+              </div>
+            </td>
+
+            {/* Reviewing Manager Signature & Name */}
+            <td style={styles.signatureBox}>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100%" }}>
+                <input
+                  type="text"
+                  placeholder="Reviewing Manager Name"
+                  value={formData.reviewingManagerName || ""}
+                  onChange={(e) => updateField("reviewingManagerName", e.target.value)}
+                  style={{
+                    marginTop: 6,
+                    marginBottom: 2,
+                    padding: "4px 6px",
+                    fontSize: 13,
+                    borderRadius: 4,
+                    border: "1px solid #ccc",
+                    width: "85%",
+                    alignSelf: "center",
+                    boxSizing: "border-box",
+                    height: 26,
+                    textAlign: "center",
+                  }}
+                />
+                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}>
+                  {signatures.reviewingManager ? (
+                    <label style={{ cursor: "pointer", height: "100%" }}>
+                      <img src={signatures.reviewingManager} alt="Reviewing Manager signature" style={styles.signatureImg} />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleSignatureUpload("reviewingManager", e)}
+                        style={{ display: "none" }}
+                      />
+                    </label>
+                  ) : (
+                    <>
+                      {/* <span style={{ color: "#bbb", fontSize: 13, margin: "10px 0 4px 0" }}>No signature</span> */}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleSignatureUpload("reviewingManager", e)}
+                        style={{ margin: "0 auto", display: "block" }}
+                      />
+                    </>
                   )}
                 </div>
               </div>
             </td>
           </tr>
+
         </tbody>
       </table>
 
