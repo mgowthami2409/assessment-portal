@@ -24,4 +24,17 @@ export function getInterviewById(interviewId) {
 
 }
 
+export function getSignatureUrl(interviewId, role) {
+  return API.get(`/interview/${interviewId}/signature/${role}`)
+    .then(res => res.data);
+}
+export function uploadSignatureAttachment(interviewId, file, role) {
+  const form = new FormData();
+  form.append("file", file);
+  form.append("role", role);
+  return API.post(`/interview/${interviewId}/signatureAttachment`, form, {
+    headers: { "Content-Type": "multipart/form-data" }
+  });
+}
+
 export default API;

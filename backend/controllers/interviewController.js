@@ -1,5 +1,6 @@
-const { saveInterviewForm, getInterviewById } = require("../services/interviewService");
+const { saveInterviewForm, getInterviewById } = require("../services/interviewSmartsheetService");
 const config = require("../config");
+const { uploadRowAttachment } = require("../services/interviewSmartsheetService");
 
 async function submitInterviewForm(req, res) {
   try {
@@ -120,4 +121,48 @@ async function shareInterview(req, res) {
   }
 }
 
-module.exports = { submitInterviewForm, fetchInterviewById, shareInterview };
+// New controller function:
+async function uploadSignatureAttachment(req, res) {
+  try {
+    const interviewId = req.params.id;
+    const role = req.body.role;
+    const file = req.file || (req.files && req.files.file);
+
+    // Validate file and role
+    if (!file || !role) {
+      return res.status(400).json({ success: false, error: "File and role required" });
+    }
+    // Save attachment to Smartsheet row
+    const result = await uploadRowAttachment(interviewId, file, role);
+    return res.status(200).json({ success: true, attachmentId: result.id });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+const { getSignatureAttachmentUrl } = require("../services/interviewSmartsheetService");
+
+async function getSignatureUrl(req, res) {
+  try {
+    const interviewId = req.params.id;
+    const role = req.params.role;
+
+    if (!interviewId || !role) {
+      return res.status(400).json({ success: false, error: "interviewId and role are required" });
+    }
+
+    const url = await getSignatureAttachmentUrl(interviewId, role);
+    if (!url) {
+      return res.status(404).json({ success: false, error: "Signature not found" });
+    }
+
+    res.status(200).json({ success: true, url });
+  } catch (err) {
+    console.error("Error fetching signature URL:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+module.exports = { 
+  submitInterviewForm, fetchInterviewById, shareInterview, uploadSignatureAttachment, getSignatureUrl  
+};

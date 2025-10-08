@@ -1,4 +1,5 @@
 const Smartsheet = require("smartsheet");
+const fs = require("fs");
 const smartsheet = Smartsheet.createClient({
   accessToken: process.env.SMARTSHEET_ACCESS_TOKEN,
 });
@@ -158,4 +159,98 @@ async function getInterviewById(rowId) {
   };
 }
 
-module.exports = { addRowWithInterviewData, updateRowWithInterviewData, getInterviewById };
+async function uploadRowAttachment(rowId, file, role) {
+  const sheetId = SHEET_ID;
+
+  if (!file || !rowId) {
+    throw new Error("File and Row ID are required to upload attachment");
+  }
+
+  // Convert the buffer to readable stream
+  const bufferStream = new stream.PassThrough();
+  bufferStream.end(file.buffer);
+
+  try {
+    const result = await smartsheet.sheets.attachments.attachFileToRow({
+      sheetId,
+      rowId: Number(rowId),
+      file: bufferStream, // stream of file data
+      fileName: `${role}-signature-${Date.now()}-${file.originalname}`,
+      mimeType: file.mimetype,
+    });
+
+    return result.result[0];  // Return the uploaded attachment info
+  } catch (err) {
+    console.error("Smartsheet attachment upload failed:", err);
+    throw err;
+  }
+}
+  
+async function saveInterviewForm(formData, role) {
+  // if formData has an interviewId, update existing Smartsheet row
+  const interviewId = formData.interviewId || null;
+
+  if (interviewId) {
+    console.log(`Updating Smartsheet row ${interviewId}`);
+    return await updateRowWithInterviewData(interviewId, formData);
+  } else {
+    console.log(`Creating new Smartsheet row`);
+    return await addRowWithInterviewData(formData);
+  }
+}
+async function submitInterviewForm(req, res) {
+  try {
+    const bodyFormData = req.body.formData || {};
+    const signatures = req.body.signatures || {};
+    const interviewId = req.body.interviewId || null;
+    const role = req.body.role;
+
+    if (!process.env.SMARTSHEET_API_TOKEN || !process.env.SMARTSHEET_INTERVIEW_SHEET_ID) {
+      const msg = 'Smartsheet configuration missing.';
+      console.error(msg);
+      return res.status(500).json({ success: false, error: msg });
+    }
+
+    // Save the form (creates or updates the row)
+    const savedInterviewId = await saveInterviewForm(bodyFormData, role);
+
+    // Upload each signature as attachment if provided
+    const signatureRoles = ["hiringManager", "reviewingManager", "divisionHR"];
+    for (const sigRole of signatureRoles) {
+      if (signatures[sigRole] && signatures[sigRole].buffer) {
+        await uploadRowAttachment(
+          savedInterviewId,
+          signatures[sigRole],
+          sigRole
+        );
+      }
+    }
+
+    res.status(200).json({ success: true, interviewId: savedInterviewId });
+  } catch (err) {
+    console.error("Error submitting interview form:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+// Get URL of signature attachment by role for a row
+async function getSignatureAttachmentUrl(rowId, role) {
+  const attachmentsResponse = await smartsheet.attachments.listAttachments({
+    sheetId: SHEET_ID,
+    rowId: Number(rowId),
+  });
+
+  if (!attachmentsResponse.data || attachmentsResponse.data.length === 0) return null;
+
+  // Find attachment with role in filename (uploaded with role name)
+  const attachment = attachmentsResponse.data.find(att => att.name && att.name.includes(role));
+
+  if (!attachment) return null;
+
+  // Smartsheet provides a URL field for direct attachment access
+  return attachment.url || null;
+}
+
+module.exports = {
+  addRowWithInterviewData, updateRowWithInterviewData, getInterviewById, uploadRowAttachment, saveInterviewForm, getSignatureAttachmentUrl
+};

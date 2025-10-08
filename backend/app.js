@@ -29,11 +29,6 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/build/index.html"));
 });
 
-// Comment out or remove old 404 handler because React will handle routing
-// app.use((req, res) => {
-//   res.status(404).json({ error: "Not Found" });
-// });
-
 app.listen(PORT, () => {
   console.log(`Backend server running at http://localhost:${PORT}`);
 });
