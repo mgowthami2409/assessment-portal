@@ -1,24 +1,32 @@
 const express = require("express");
-const router = express.Router();
-// const { submitInterviewForm, fetchInterviewById, shareInterview } = require("../controllers/interviewController");
-const { submitInterviewForm, fetchInterviewById, shareInterview, uploadSignatureAttachment, getSignatureUrl } = require("../controllers/interviewController");
 const multer = require("multer");
-const upload = multer();
+const {
+  submitInterviewForm,
+  fetchInterviewById,
+  shareInterview,
+  uploadSignatureAttachment,
+  getSignatureUrl,
+} = require("../controllers/interviewController");
 
-// Submit or update interview form
+const router = express.Router();
+const upload = multer({ dest: "uploads/" }); // Temporary local storage
+
+// 📝 Submit or update interview form
 router.post("/submit", submitInterviewForm);
 
-// Fetch a saved interview by Smartsheet row id
+// 🔍 Fetch interview by row id
 router.get("/:id", fetchInterviewById);
 
-// Share interview by email (uses SMTP when configured, otherwise returns mailto fallback)
+// 📤 Share interview via email
 router.post("/share", shareInterview);
 
-// Add at the end, after fetchInterviewById
-// router.post("/:id/signatureAttachment", uploadSignatureAttachment);
+// 🖋 Upload signature attachment (to Smartsheet)
 router.post("/:id/signatureAttachment", upload.single("file"), uploadSignatureAttachment);
 
-// Get signature attachment URL for a role in an interview
+// (Optional backup route name if frontend still calls this)
+router.post("/:id/upload-signature", upload.single("file"), uploadSignatureAttachment);
+
+// 🔗 Retrieve signature attachment URL
 router.get("/:id/signature/:role", getSignatureUrl);
 
 module.exports = router;

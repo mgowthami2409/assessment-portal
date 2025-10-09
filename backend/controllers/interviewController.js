@@ -1,168 +1,165 @@
-const { saveInterviewForm, getInterviewById } = require("../services/interviewSmartsheetService");
+const smartsheetService = require("../services/interviewSmartsheetService");
+// const smartsheet = require("smartsheet");
+const fs = require("fs");
+const { getInterviewById, saveInterviewForm, getSignatureAttachment, attachFileToRow } = require("../services/interviewService");
 const config = require("../config");
-const { uploadRowAttachment } = require("../services/interviewSmartsheetService");
 
+// Controller to submit or update interview form and upload associated signatures
 async function submitInterviewForm(req, res) {
   try {
-    // Expected body: { formData: {...}, signatures: {...}, interviewId: string|null, role?: string }
-    const bodyFormData = req.body.formData || {};
-    const signatures = req.body.signatures || {};
-    const interviewId = req.body.interviewId || null;
-    const role = req.body.role;
+    const { formData = {}, signatures = {}, interviewId = null, role } = req.body;
 
-    // Basic env validation so caller gets a helpful error instead of a low-level Smartsheet exception
+    // Validate Smartsheet configuration
     if (!config.SMARTSHEET_API_TOKEN || !config.SMARTSHEET_INTERVIEW_SHEET_ID) {
-      const msg = 'Smartsheet configuration missing. Set SMARTSHEET_API_TOKEN and SMARTSHEET_INTERVIEW_SHEET_ID in backend .env';
+      const msg = 'Smartsheet config missing.';
       console.error(msg);
       return res.status(500).json({ success: false, error: msg });
     }
 
-    // Merge interviewId (if provided at top-level) into formData so service can decide add vs update
-    if (signatures.hiringManager) bodyFormData.hiringManager = signatures.hiringManager;
-    if (signatures.reviewingManager) bodyFormData.reviewingManager = signatures.reviewingManager;
-    if (signatures.divisionHR) bodyFormData.divisionHR = signatures.divisionHR;
+    // Merge signature placeholders into form data (may be optional depending on usage)
+    if (signatures.hiringManager) formData.hiringManager = signatures.hiringManager;
+    if (signatures.reviewingManager) formData.reviewingManager = signatures.reviewingManager;
+    if (signatures.divisionHR) formData.divisionHR = signatures.divisionHR;
 
-    // Merge signatures into formData under the keys expected by the Smartsheet service
-    // if (signatures.hiringManager) bodyFormData.hiringManager = signatures.hiringManager;
-    // if (signatures.reviewingManager) bodyFormData.reviewingManager = signatures.reviewingManager;
-    // if (signatures.divisionHR) bodyFormData.divisionHR = signatures.divisionHR;
+    // Save or update interview data
+    const savedId = await saveInterviewForm(formData, role);
 
-    const result = await saveInterviewForm(bodyFormData, role);
-    res.status(200).json({ success: true, interviewId: result });
-  } catch (err) {
-    console.error("Error submitting interview form:", err);
-    res.status(500).json({ success: false, error: err.message });
+    // Attach each signature file as an attachment in Smartsheet
+    for (const sigRole of ["hiringManager", "reviewingManager", "divisionHR"]) {
+      if (signatures[sigRole] && signatures[sigRole].buffer) {
+        await attachFileToRow(
+          savedId,
+          signatures[sigRole].buffer,
+          `${sigRole}-signature-${Date.now()}-${signatures[sigRole].originalname}`,
+          signatures[sigRole].mimetype
+        );
+      }
+    }
+
+    res.status(200).json({ success: true, interviewId: savedId });
+  } catch (error) {
+    console.error("submitInterviewForm error:", error);
+    res.status(500).json({ success: false, error: error.message });
   }
 }
 
+// Fetch interview by row id with fallback mocks in development
 async function fetchInterviewById(req, res) {
+  const { id } = req.params;
   try {
-    const interview = await getInterviewById(req.params.id);
+    const interview = await getInterviewById(id);
+
     if (!interview) {
       return res.status(404).json({ success: false, message: "Interview not found" });
     }
-    res.status(200).json({ success: true, interview });
-  } catch (err) {
-    console.error("Error fetching interview:", err);
-    // If Smartsheet config missing, return helpful message and optionally a dev mock
-    const msg = err && err.message ? err.message : 'Unknown error fetching interview';
-    if ((!config.SMARTSHEET_API_TOKEN || !config.SMARTSHEET_INTERVIEW_SHEET_ID) && process.env.NODE_ENV === 'development') {
-      // Development mock to let frontend load while Smartsheet isn't configured
-      const mock = {
-        interviewId: req.params.id || 'dev-123',
-        candidateName: 'Dev Candidate',
-        interviewerName: 'Hiring Manager',
-        interviewDate: new Date().toISOString().slice(0,10),
-        position: 'Test Position',
-        location: 'DEV',
-        strengths: 'Mock strengths',
-        improvementAreas: 'Mock improvements',
-        finalRecommendation: 'On Hold',
-        overallComments: 'This is a development mock response',
-        reviewingManagerName: '',
-        divisionHRName: '',
-        hiringManager: null,
-        reviewingManager: null,
-        divisionHR: null,
-        competencyNames: ["", "", "", "", ""],
-        behavioralAnswers: Array(6).fill().map(() => ({ selectedQuestions: [], notes: { circumstance: '', action: '', result: '' } })),
-      };
-      return res.status(200).json({ success: true, interview: mock, note: 'development-mock' });
+
+    res.json({ success: true, interview });
+  } catch (error) {
+    console.error("fetchInterviewById error:", error);
+    if ((!config.SMARTSHEET_API_TOKEN || !config.SMARTSHEET_INTERVIEW_SHEET_ID) && process.env.NODE_ENV === "development") {
+      // Dev mock
+      return res.json({
+        success: true,
+        interview: {
+          interviewId: id,
+          candidateName: "Dev Candidate",
+          // ... other mock data
+        },
+        note: "development-mock"
+      });
     }
-    res.status(500).json({ success: false, error: msg });
+
+    res.status(500).json({ success: false, error: error.message });
   }
 }
 
+// Share interview link via email with SMTP fallback
 async function shareInterview(req, res) {
   try {
-    // Expected body: { interviewId, toEmail }
     const { interviewId, toEmail } = req.body;
-    if (!interviewId || !toEmail) return res.status(400).json({ success: false, error: 'interviewId and toEmail required' });
+    if (!interviewId || !toEmail) return res.status(400).json({ success: false, error: "interviewId and toEmail required" });
 
-    // Build link to form
-    const link = `${req.protocol}://${req.get('host')}/interview/${interviewId}`;
-    const subject = 'Interview Assessment Form';
-    const bodyLines = [
-      `Please review the interview assessment: ${link}`,
-      '',
-      'Open the link, review, update if required, and add your signature.'
-    ];
-    const body = bodyLines.join('\n');
+    const link = `${req.protocol}://${req.get("host")}/interview/${interviewId}`;
+    const subject = "Interview Assessment";
+    const body = `Please review the interview at: ${link}`;
 
-    // If SMTP configured, send email
-    const nodemailer = require('nodemailer');
-    const smtpHost = process.env.SMTP_HOST;
-    const smtpPort = process.env.SMTP_PORT;
-    const smtpUser = process.env.SMTP_USER;
-    const smtpPass = process.env.SMTP_PASS;
-
-    if (smtpHost && smtpPort && smtpUser && smtpPass) {
+    if (process.env.SMTP_HOST && process.env.SMTP_USER) {
+      const nodemailer = require("nodemailer");
       const transporter = nodemailer.createTransport({
-        host: smtpHost,
-        port: Number(smtpPort),
-        secure: Number(smtpPort) === 465,
-        auth: { user: smtpUser, pass: smtpPass },
+        host: process.env.SMTP_HOST,
+        port: Number(process.env.SMTP_PORT),
+        secure: process.env.SMTP_PORT === "465",
+        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
       });
+
       const info = await transporter.sendMail({
-        from: smtpUser,
+        from: process.env.SMTP_USER,
         to: toEmail,
         subject,
         text: body,
       });
-      return res.status(200).json({ success: true, provider: 'smtp', info });
-    }
 
-    // Fallback: return mailto link for frontend to open
-    const mailto = `mailto:${encodeURIComponent(toEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    return res.status(200).json({ success: true, provider: 'mailto', mailto });
-  } catch (err) {
-    console.error('Error sharing interview:', err);
-    res.status(500).json({ success: false, error: err.message });
+      return res.json({ success: true, provider: "smtp", info });
+    } else {
+      // Fallback mailto:
+      const mailtoUrl = `mailto:${encodeURIComponent(toEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      return res.json({ success: true, provider: "mailto", mailto: mailtoUrl });
+    }
+  } catch (error) {
+    console.error("shareInterview error:", error);
+    res.status(500).json({ success: false, error: error.message });
   }
 }
 
-// New controller function:
+// Upload signature file as attachment
 async function uploadSignatureAttachment(req, res) {
   try {
-    const interviewId = req.params.id;
-    const role = req.body.role;
-    const file = req.file || (req.files && req.files.file);
+    const { id } = req.params;
+    const { role } = req.body;
+    const file = req.file;
 
-    // Validate file and role
-    if (!file || !role) {
-      return res.status(400).json({ success: false, error: "File and role required" });
+    if (!file) {
+      return res.status(400).json({ success: false, message: "No file uploaded" });
     }
-    // Save attachment to Smartsheet row
-    const result = await uploadRowAttachment(interviewId, file, role);
-    return res.status(200).json({ success: true, attachmentId: result.id });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+
+    // Call attachFileToRow from smartsheetService
+    const attachment = await smartsheetService.attachFileToRow(
+      id,
+      fs.readFileSync(file.path), // read file buffer from temp path
+      `${role}_signature-${Date.now()}-${file.originalname}`,
+      file.mimetype
+    );
+
+    // Delete temp file
+    fs.unlinkSync(file.path);
+
+    res.json({ success: true, attachment });
+  } catch (error) {
+    console.error("Error uploading signature:", error);
+    res.status(500).json({ success: false, message: "Signature upload failed", error: error.message });
   }
 }
 
-const { getSignatureAttachmentUrl } = require("../services/interviewSmartsheetService");
-
+// Get signature attachment URL for given role & row id
 async function getSignatureUrl(req, res) {
   try {
-    const interviewId = req.params.id;
-    const role = req.params.role;
+    const { id, role } = req.params;
+    if (!id || !role) return res.status(400).json({ success: false, error: "id and role required" });
 
-    if (!interviewId || !role) {
-      return res.status(400).json({ success: false, error: "interviewId and role are required" });
-    }
+    const url = await getSignatureAttachment(id, role);
+    if (!url) return res.status(404).json({ success: false, error: "Signature not found" });
 
-    const url = await getSignatureAttachmentUrl(interviewId, role);
-    if (!url) {
-      return res.status(404).json({ success: false, error: "Signature not found" });
-    }
-
-    res.status(200).json({ success: true, url });
-  } catch (err) {
-    console.error("Error fetching signature URL:", err);
-    res.status(500).json({ success: false, error: err.message });
+    res.json({ success: true, url });
+  } catch (error) {
+    console.error("getSignatureUrl error:", error);
+    res.status(500).json({ success: false, error: error.message });
   }
 }
 
-module.exports = { 
-  submitInterviewForm, fetchInterviewById, shareInterview, uploadSignatureAttachment, getSignatureUrl  
+module.exports = {
+  submitInterviewForm,
+  fetchInterviewById,
+  shareInterview,
+  uploadSignatureAttachment,
+  getSignatureUrl,
 };
