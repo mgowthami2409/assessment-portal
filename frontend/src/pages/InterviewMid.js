@@ -269,8 +269,6 @@ export default function InterviewAssessmentForm() {
     reviewingManager: null,
     divisionHR: null,
   });
-  const [skipFetch, setSkipFetch] = useState(false);
-
 
   // Function to handle signature selection
   const handleSignatureUpload = (role, e) => {
@@ -292,68 +290,64 @@ export default function InterviewAssessmentForm() {
   };
 
   useEffect(() => {
-    if (!currentInterviewId || skipFetch) return; // skip fetch if skipFetch is true
+    if (!currentInterviewId) return;
 
-    let isMounted = true;
-
-    async function fetchData() {
-      try {
-        const res = await getInterviewById(currentInterviewId);
-
-        if (!res.data.success) {
-          if (isMounted) alert("Interview data not found");
-          return;
-        }
-
+    getInterviewById(currentInterviewId)
+      .then(async (res) => {
+        if (!res.data.success) return alert("Interview data not found");
         const data = res.data.interview;
 
-        if (isMounted) {
-          setFormData({
-            candidateName: data.candidateName || "",
-            competencies: data.competencies || Array(4).fill({ name: "", comments: "", rating: null }),
-            interviewDate: data.interviewDate || "",
-            interviewerName: data.interviewerName || "",
-            position: data.position || "",
-            location: data.location || "",
-            strengths: data.strengths || "",
-            improvementAreas: data.improvementAreas || "",
-            finalRecommendation: data.finalRecommendation || "",
-            overallComments: data.overallComments || "",
-            reviewingManagerName: data.reviewingManagerName || "",
-            divisionHRName: data.divisionHRName || "",
-            hiringManagerRecommendation: data.hiringManagerRecommendation || "",
-            behavioralAnswers: data.behavioralAnswers?.length === 6 ? data.behavioralAnswers : initialValuesData.map(() => ({
-              selectedQuestions: [],
-              notes: { circumstance: "", action: "", result: "" },
-            })),
-          });
+        setFormData({
+          candidateName: data.candidateName || "",
+          competencies: data.competencies || Array(4).fill({ name: "", comments: "", rating: null }),
+          interviewDate: data.interviewDate || "",
+          interviewerName: data.interviewerName || "",
+          position: data.position || "",
+          location: data.location || "",
+          strengths: data.strengths || "",
+          improvementAreas: data.improvementAreas || "",
+          finalRecommendation: data.finalRecommendation || "",
+          overallComments: data.overallComments || "",
+          reviewingManagerName: data.reviewingManagerName || "",
+          divisionHRName: data.divisionHRName || "",
+          hiringManagerRecommendation: data.hiringManagerRecommendation || "",
+          behavioralAnswers: data.behavioralAnswers?.length === 6 ? data.behavioralAnswers : initialValuesData.map(() => ({
+            selectedQuestions: [],
+            notes: { circumstance: "", action: "", result: "" },
+          })),
+        });
 
-          // Fetch signature URLs here if needed, as before...
+        // Fetch signature attachment URLs from backend per role
+        const roles = ["hiringManager", "reviewingManager", "divisionHR"];
+        const urls = {};
+        for (const role of roles) {
+          try {
+            const sigRes = await getSignatureUrl(currentInterviewId, role);
+            if (sigRes.success && sigRes.url) {
+              urls[role] = sigRes.url;
+            }
+          } catch (err) {
+            console.warn(`No signature found for ${role}`, err);
+          }
         }
-      } catch (err) {
+        setSignaturePreviews(urls);
+      })
+      .catch(err => {
         console.error(err);
-        if (isMounted) alert("Failed to fetch interview data.");
-      }
-    }
-
-    fetchData();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [currentInterviewId, skipFetch]);
+        alert("Failed to fetch interview data.");
+      });
+  }, [currentInterviewId]);
 
   const handleSubmitAndShare = async () => {
     try {
-      setSkipFetch(true);  // prevent immediate refetch after submit
-
-      // Prepare form data excluding signature files
+      // Submit form data WITHOUT signatures (they upload separately)
       const formDataToSubmit = { ...formData };
+      
+      // Remove signature files from formData if present
       delete formDataToSubmit.hiringManager;
       delete formDataToSubmit.reviewingManager;
       delete formDataToSubmit.divisionHR;
 
-      // Submit the form data
       const response = await submitInterviewForm(formDataToSubmit, interviewId);
 
       if (!response.data.success) throw new Error("Form submission failed");
@@ -361,16 +355,12 @@ export default function InterviewAssessmentForm() {
       const newId = response.data.interviewId;
       setInterviewId(newId);
 
-      // Upload each signature file separately, then update previews
+      // Upload signatures separately if they exist
       for (const role of ["hiringManager", "reviewingManager", "divisionHR"]) {
         const file = signatures[role];
         if (file instanceof File) {
           try {
             await uploadSignatureAttachment(newId, file, role);
-            const sigRes = await getSignatureUrl(newId, role);
-            if (sigRes.success && sigRes.url) {
-              setSignaturePreviews((prev) => ({ ...prev, [role]: sigRes.url }));
-            }
           } catch (err) {
             console.error(`Failed to upload ${role} signature`, err);
           }
@@ -379,12 +369,16 @@ export default function InterviewAssessmentForm() {
 
       alert("Form saved successfully!");
 
+      // Mail sharing logic...
+      const link = `${window.location.origin}/interview/mid/${newId}`;
+      const subject = encodeURIComponent("Interview Assessment Form");
+      const body = encodeURIComponent(
+        `Candidate Name: ${formData.candidateName}\nInterviewer: ${formData.interviewerName}\nPosition: ${formData.position}\nLocation: ${formData.location}\nDate: ${formData.interviewDate}\n\nLink to form: ${link}\n\nPlease review, update if required, and add your signature.`
+      );
+      window.location.href = `mailto:?subject=${subject}&body=${body}`;
     } catch (err) {
       console.error(err);
       alert("Error saving form");
-    } finally {
-      // Re-enable fetches after 1 second
-      setTimeout(() => setSkipFetch(false), 1000);
     }
   };
 
@@ -635,6 +629,13 @@ export default function InterviewAssessmentForm() {
         onChange={(e) => updateField("improvementAreas", e.target.value)}
       />
 
+      <label style={styles.inputLabel}>Overall Comments:</label>
+      <textarea
+        style={styles.textareaStyle}
+        value={formData.overallComments}
+        onChange={(e) => updateField("overallComments", e.target.value)}
+      />
+
       <h3 style={{ ...styles.heading2, marginTop: 40 }}>Recommendation by the Hiring Manager</h3>
       <div
         style={{
@@ -738,6 +739,27 @@ export default function InterviewAssessmentForm() {
         </div>
       ))}
 
+      <label style={styles.inputLabel}>Strengths:</label>
+      <textarea
+        style={styles.textareaStyle}
+        value={formData.strengthsHM}
+        onChange={(e) => updateField("strengths", e.target.value)}
+      />
+
+      <label style={styles.inputLabel}>Areas of Improvement:</label>
+      <textarea
+        style={styles.textareaStyle}
+        value={formData.improvementAreasHM}
+        onChange={(e) => updateField("improvementAreas", e.target.value)}
+      />
+
+      <label style={styles.inputLabel}>Overall Comments:</label>
+      <textarea
+        style={styles.textareaStyle}
+        value={formData.overallCommentsHM}
+        onChange={(e) => updateField("overallComments", e.target.value)}
+      />
+
       <h3 style={{ ...styles.heading2, marginTop: 40 }}>Final Recommendation (To be updated by HR after discussion with Hiring Manager)</h3>
       <div
         style={{
@@ -763,13 +785,6 @@ export default function InterviewAssessmentForm() {
           </label>
         ))}
       </div>
-
-      <label style={styles.inputLabel}>Overall Comments:</label>
-      <textarea
-        style={styles.textareaStyle}
-        value={formData.overallComments}
-        onChange={(e) => updateField("overallComments", e.target.value)}
-      />
 
       <h3 style={{ ...styles.heading2, marginTop: 40 }}>Signatures</h3>
       <table style={styles.signatureTable}>

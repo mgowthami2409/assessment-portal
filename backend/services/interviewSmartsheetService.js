@@ -75,6 +75,9 @@ async function addRowWithInterviewData(formData) {
     { columnId: columnMap["ReviewingManagerName"], value: safeValue(formData.reviewingManagerName) },
     { columnId: columnMap["DivisionHRName"], value: safeValue(formData.divisionHRName) },
     { columnId: columnMap["HiringManagerRecommendation"], value: safeValue(formData.hiringManagerRecommendation) },
+    { columnId: columnMap["StrengthsHM"], value: safeValue(formData.strengthsHM) },
+    { columnId: columnMap["ImprovementAreasHM"], value: safeValue(formData.improvementAreasHM) },
+    { columnId: columnMap["OverallCommentsHM"], value: safeValue(formData.overallCommentsHM) },
   ];
 
   // Add optional JSON columns if present
@@ -117,6 +120,9 @@ async function updateRowWithInterviewData(rowId, formData) {
     { columnId: columnMap["ReviewingManagerName"], value: safeValue(formData.reviewingManagerName) },
     { columnId: columnMap["DivisionHRName"], value: safeValue(formData.divisionHRName) },
     { columnId: columnMap["HiringManagerRecommendation"], value: safeValue(formData.hiringManagerRecommendation) },
+    { columnId: columnMap["StrengthsHM"], value: safeValue(formData.strengthsHM) },
+    { columnId: columnMap["ImprovementAreasHM"], value: safeValue(formData.improvementAreasHM) },
+    { columnId: columnMap["OverallCommentsHM"], value: safeValue(formData.overallCommentsHM) },
   ];
 
   if (columnMap["Competencies"] && formData.competencies) {
@@ -175,6 +181,9 @@ async function getInterviewById(rowId) {
     hiringManagerRecommendation: getCellValue("HiringManagerRecommendation"),
     competencies: safeJSONParse(getCellValue("Competencies")),
     behavioralAnswers: safeJSONParse(getCellValue("BehavioralAnswers")),
+    strengthsHM: getCellValue("StrengthsHM"),
+    improvementAreasHM: getCellValue("ImprovementAreasHM"),
+    overallCommentsHM: getCellValue("OverallCommentsHM"),
   };
 }
 
