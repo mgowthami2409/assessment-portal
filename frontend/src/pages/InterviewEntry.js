@@ -397,7 +397,7 @@ export default function InterviewAssessmentForm() {
         alt="Suprajit Logo"
         style={{ height: 60, marginRight: 16 }}
       />
-      <h2 style={styles.heading2}>Interview Assessment Form - Mid Level</h2>
+      <h2 style={styles.heading2}>Interview Assessment Form - Entry Level</h2>
 
       <label style={styles.inputLabel}>Candidate Name:</label>
       <input
