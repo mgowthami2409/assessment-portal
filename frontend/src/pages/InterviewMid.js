@@ -742,21 +742,21 @@ export default function InterviewAssessmentForm() {
       <label style={styles.inputLabel}>Strengths:</label>
       <textarea
         style={styles.textareaStyle}
-        value={formData.strengths}
+        value={formData.strengthsHM}
         onChange={(e) => updateField("strengths", e.target.value)}
       />
 
       <label style={styles.inputLabel}>Areas of Improvement:</label>
       <textarea
         style={styles.textareaStyle}
-        value={formData.improvementAreas}
+        value={formData.improvementAreasHM}
         onChange={(e) => updateField("improvementAreas", e.target.value)}
       />
 
       <label style={styles.inputLabel}>Overall Comments:</label>
       <textarea
         style={styles.textareaStyle}
-        value={formData.overallComments}
+        value={formData.overallCommentsHM}
         onChange={(e) => updateField("overallComments", e.target.value)}
       />
 
