@@ -397,7 +397,7 @@ export default function InterviewAssessmentForm() {
         alt="Suprajit Logo"
         style={{ height: 60, marginRight: 16 }}
       />
-      <h2 style={styles.heading2}>Interview Assessment Form - Entry Level</h2>
+      <h2 style={styles.heading2}>Interview Assessment Form - Mid Level</h2>
 
       <label style={styles.inputLabel}>Candidate Name:</label>
       <input
@@ -793,13 +793,6 @@ export default function InterviewAssessmentForm() {
           </label>
         ))}
       </div>
-
-      <label style={styles.inputLabel}>Overall Comments:</label>
-      <textarea
-        style={styles.textareaStyle}
-        value={formData.overallComments}
-        onChange={(e) => updateField("overallComments", e.target.value)}
-      />
 
       <h3 style={{ ...styles.heading2, marginTop: 40 }}>Signatures</h3>
       <table style={styles.signatureTable}>
