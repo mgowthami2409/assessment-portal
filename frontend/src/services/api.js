@@ -15,7 +15,7 @@ export function getInterviewById(interviewId) {
 }
 
 export function getSignatureUrl(interviewId, role) {
-  return API.get(`/interview/${interviewId}/signature/${role}`)
+  return API.get(`/interview/${interviewId}/${role}/`)
     .then(res => res.data);
 }
 
