@@ -126,8 +126,7 @@ async function uploadSignatureAttachment(req, res) {
     const attachment = await smartsheetService.attachFileToRow(
       id,
       fs.readFileSync(file.path), // read file buffer from temp path
-      // `${role}_signature-${Date.now()}-${file.originalname}`,
-      `${role}`,
+      `${role}_signature-${Date.now()}-${file.originalname}`,
       file.mimetype
     );
 
