@@ -27,6 +27,6 @@ router.post("/:id/signatureAttachment", upload.single("file"), uploadSignatureAt
 router.post("/:id/upload-signature", upload.single("file"), uploadSignatureAttachment);
 
 // 🔗 Retrieve signature attachment URL
-router.get("/:id/signature/:role", getSignatureUrl);
+router.get("/", getSignatureUrl);
 
 module.exports = router;

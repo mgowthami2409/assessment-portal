@@ -143,16 +143,21 @@ async function uploadSignatureAttachment(req, res) {
 // Get signature attachment URL for given role & row id
 async function getSignatureUrl(req, res) {
   try {
-    const { id, role } = req.params;
-    if (!id || !role) return res.status(400).json({ success: false, error: "id and role required" });
+    const { id, rowId } = req.params;
 
-    const url = await getSignatureAttachment(id, role);
-    if (!url) return res.status(404).json({ success: false, error: "Signature not found" });
+    console.log("Get signature URL for id:", id, "rowId:", rowId);
+    if (!id || !rowId) return res.status(400).json({ error: "Missing id or role" });
+
+    const url = await getSignatureAttachment(id,rowId);
+
+    console.log('Retrieved signature URL:', url);
+    if (!url) return res.status(404).json({ error: "Signature not found" });
 
     res.json({ success: true, url });
+
   } catch (error) {
-    console.error("getSignatureUrl error:", error);
-    res.status(500).json({ success: false, error: error.message });
+    console.error('Error getting signature URL:', error);
+    res.status(500).json({ error: error.message });
   }
 }
 

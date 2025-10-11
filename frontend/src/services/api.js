@@ -14,9 +14,26 @@ export function getInterviewById(interviewId) {
 
 }
 
-export function getSignatureUrl(interviewId, role) {
-  return API.get(`/interview/${interviewId}/${role}`)
-    .then(res => res.data);
+// export function getSignatureUrl(interviewId, role) {
+//   return API.get(`/interview/${interviewId}/signature/${role}/attachments`)
+//     .then(res => res.data);
+// }
+
+export function getSignatureUrl(interviewId, rowId) {
+const token = "cjwFTOnosztE445MUWkPPDhii6JaLHpSWdZRZ"
+  const url = `https://api.smartsheet.com/2.0/sheets/5846895369867140/rows/${interviewId}/attachments`;
+
+  console.log("Fetching signature URL from: Ankitha", url);
+   
+  return axios.get(url, {
+    headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+    }
+})
+.then(res => res.data);
+ 
+    
 }
 
 export function submitInterviewForm(formData, interviewId) {
@@ -42,7 +59,7 @@ export const uploadSignatureAttachment = async (interviewId, file, role) => {
         headers: { "Content-Type": "multipart/form-data" },
       }
     );
-
+ 
     return response;
   } catch (error) {
     console.error("Error uploading signature:", error);

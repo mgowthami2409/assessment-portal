@@ -204,6 +204,8 @@ async function attachFileToRow(rowId, fileBuffer, filename, mimeType) {
     const url = `https://api.smartsheet.com/2.0/sheets/${SHEET_ID}/rows/${rowId}/attachments`;
     // const url = `https://api.smartsheet.com/2.0/sheets/${SHEET_ID}/rows`;
 
+    console.log("Attaching file to row URL:", url);
+
     const response = await axios.post(url, form, {
       headers: {
         ...form.getHeaders(),
@@ -236,6 +238,8 @@ async function saveInterviewForm(formData, role) {
 }
 
 async function getSignatureAttachment(rowId, role) {
+  console.log("Get UR Hiring Manager id:", rowId);
+    console.log("Get UR Hiring Manager role:", role);
   try {
     const response = await smartsheetClient.sheets.attachments.listAttachments({
       sheetId: Number(SHEET_ID),

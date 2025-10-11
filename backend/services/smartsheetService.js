@@ -3,9 +3,9 @@ const smartsheet = Smartsheet.createClient({
   accessToken: process.env.SMARTSHEET_ACCESS_TOKEN,
 });
 const SHEET_ID = Number(process.env.SMARTSHEET_BEHAVIORAL_SHEET_ID);
-console.log("Available smartsheet methods:");
-console.log("sheets:", Object.keys(smartsheet.sheets));
-console.log("attachments:", smartsheet.attachments ? Object.keys(smartsheet.attachments) : "no attachments");
+// console.log("Available smartsheet methods:");
+// console.log("sheets:", Object.keys(smartsheet.sheets));
+// console.log("attachments:", smartsheet.attachments ? Object.keys(smartsheet.attachments) : "no attachments");
 
 async function getSheetColumns() {
   try {

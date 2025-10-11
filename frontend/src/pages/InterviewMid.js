@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { 
   submitInterviewForm, 
   getInterviewById, 
-  uploadSignatureAttachment, 
+  uploadSignatureAttachment,
   getSignatureUrl 
 } from "../services/api";
 import suprajitLogo from '../assets/suprajit_logo_BG.png';
