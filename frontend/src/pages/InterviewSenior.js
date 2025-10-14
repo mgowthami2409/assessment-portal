@@ -784,8 +784,8 @@ export default function InterviewAssessmentForm() {
         <thead>
           <tr>
             <th style={styles.signatureTh}>Hiring Manager</th>
-            <th style={styles.signatureTh}>Reviewing Manager</th>
             <th style={styles.signatureTh}>Division HR</th>
+            <th style={styles.signatureTh}>Reviewing Manager</th>
           </tr>
         </thead>
         <tbody>
