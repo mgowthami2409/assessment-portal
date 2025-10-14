@@ -4,7 +4,8 @@ import {
   submitInterviewForm, 
   getInterviewById, 
   uploadSignatureAttachment,
-  getSignatureUrl 
+  // getSignatureUrl,
+  getSignatureImageUrl 
 } from "../services/api";
 import suprajitLogo from '../assets/suprajit_logo_BG.png';
 
@@ -292,50 +293,24 @@ export default function InterviewAssessmentForm() {
   useEffect(() => {
     if (!currentInterviewId) return;
 
-    getInterviewById(currentInterviewId)
-      .then(async (res) => {
-        if (!res.data.success) return alert("Interview data not found");
-        const data = res.data.interview;
+    getInterviewById(currentInterviewId).then(async (res) => {
+      if (!res.data.success) return alert("Interview data not found");
+      // set form data as before ...
 
-        setFormData({
-          candidateName: data.candidateName || "",
-          competencies: data.competencies || Array(4).fill({ name: "", comments: "", rating: null }),
-          interviewDate: data.interviewDate || "",
-          interviewerName: data.interviewerName || "",
-          position: data.position || "",
-          location: data.location || "",
-          strengths: data.strengths || "",
-          improvementAreas: data.improvementAreas || "",
-          finalRecommendation: data.finalRecommendation || "",
-          overallComments: data.overallComments || "",
-          reviewingManagerName: data.reviewingManagerName || "",
-          divisionHRName: data.divisionHRName || "",
-          hiringManagerRecommendation: data.hiringManagerRecommendation || "",
-          behavioralAnswers: data.behavioralAnswers?.length === 6 ? data.behavioralAnswers : initialValuesData.map(() => ({
-            selectedQuestions: [],
-            notes: { circumstance: "", action: "", result: "" },
-          })),
-        });
-
-        // Fetch signature attachment URLs from backend per role
-        const roles = ["hiringManager", "reviewingManager", "divisionHR"];
-        const urls = {};
-        for (const role of roles) {
-          try {
-            const sigRes = await getSignatureUrl(currentInterviewId, role);
-            if (sigRes.success && sigRes.url) {
-              urls[role] = sigRes.url;
-            }
-          } catch (err) {
-            console.warn(`No signature found for ${role}`, err);
-          }
+      const roles = ["hiringManager", "reviewingManager", "divisionHR"];
+      const urls = {};
+      for (const role of roles) {
+        try {
+          urls[role] = await getSignatureImageUrl(currentInterviewId, role);
+        } catch (err) {
+          console.warn(`No signature found for ${role}`, err);
         }
-        setSignaturePreviews(urls);
-      })
-      .catch(err => {
-        console.error(err);
-        alert("Failed to fetch interview data.");
-      });
+      }
+      setSignaturePreviews(urls);
+    }).catch((err) => {
+      console.error(err);
+      alert("Failed to fetch interview data.");
+    });
   }, [currentInterviewId]);
 
   const handleSubmitAndShare = async () => {

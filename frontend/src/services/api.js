@@ -3,67 +3,68 @@ import axios from "axios";
 const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:9090/api";
 
 const API = axios.create({
-  baseURL: process.env.REACT_APP_API_BASE_URL || "http://localhost:9090/api",
+  baseURL: process.env.REACT_APP_API_BASE_URL || BASE_URL,
   headers: { "Content-Type": "application/json" },
 });
 
-// Fetch by ID
-export function getInterviewById(interviewId) {
-  return API.get(`/interview/${interviewId}`);
-  // navigate(`/interview/${level}/${interviewId}`);
-
-}
-
-// export function getSignatureUrl(interviewId, role) {
-//   return API.get(`/interview/${interviewId}/signature/${role}/attachments`)
-//     .then(res => res.data);
-// }
-
-export function getSignatureUrl(interviewId, rowId) {
-const token = "cjwFTOnosztE445MUWkPPDhii6JaLHpSWdZRZ"
-  const url = `https://api.smartsheet.com/2.0/sheets/5846895369867140/rows/${interviewId}/attachments`;
-
-  console.log("Fetching signature URL from: Ankitha", url);
-   
-  return axios.get(url, {
-    headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
-    }
-})
-.then(res => res.data);
- 
-    
-}
-
+// Submit interview form data (without files)
 export function submitInterviewForm(formData, interviewId) {
   const { hiringManager, reviewingManager, divisionHR, ...formFields } = formData;
-  const signatures = { hiringManager, reviewingManager, divisionHR };
+  const signatures = { hiringManager, reviewingManager, divisionHR }; // placeholders if any
 
   return API.post("/interview/submit", {
     formData: formFields,
-    signatures,  // these are just placeholders, not files
+    signatures, // keep as placeholders, actual files uploaded separately
     interviewId,
   });
 }
 
+// Upload a signature file for a given interview and role
 export const uploadSignatureAttachment = async (interviewId, file, role) => {
   try {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("role", role);
+
     const response = await axios.post(
-      `${BASE_URL}/interview/${interviewId}/upload-signature`,
+      `${BASE_URL}/interview/${interviewId}/signature`,
       formData,
       {
         headers: { "Content-Type": "multipart/form-data" },
       }
     );
- 
-    return response;
+    return response.data;
   } catch (error) {
     console.error("Error uploading signature:", error);
     throw error;
   }
 };
+
+
+// Fetch interview form by ID
+export function getInterviewById(interviewId) {
+  return API.get(`/interview/${interviewId}`);
+}
+
+// Fetch signature attachment URLs on a row for given interviewId and role
+// export function getSignatureUrl(rowId, role) {
+//   return API.get(`/interview/${rowId}/signature/${role}`).then(res => res.data);
+// }
+
+// Fetch signature attachment URL for a specific row and role
+// Fetch signature image via your backend proxy for given rowId and role
+// export function getSignatureUrl(rowId, role) {
+//   return API.get(`/interview/${rowId}/signature/${role}/image`, {
+//     responseType: 'blob', // optional if you want to process image blob
+//   }).then(res => {
+//     // If needed, convert blob to URL for <img src>
+//     return URL.createObjectURL(res.data);
+//   });
+// }
+export async function getSignatureImageUrl(rowId, role) {
+  const response = await API.get(`/interview/${rowId}/signature/${role}/image`, { responseType: "blob" });
+  return URL.createObjectURL(response.data);
+}
+
+
 export default API;

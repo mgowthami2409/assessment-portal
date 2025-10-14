@@ -3,38 +3,21 @@ const smartsheetService = require("../services/interviewSmartsheetService");
 const fs = require("fs");
 const { getInterviewById, saveInterviewForm, getSignatureAttachment, attachFileToRow } = require("../services/interviewService");
 const config = require("../config");
+const axios = require('axios');
+
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' }); // for file uploads
+
 
 // Controller to submit or update interview form and upload associated signatures
 async function submitInterviewForm(req, res) {
   try {
-    const { formData = {}, signatures = {}, interviewId = null, role } = req.body;
-
-    // Validate Smartsheet configuration
+    const { formData = {}, role } = req.body;
     if (!config.SMARTSHEET_API_TOKEN || !config.SMARTSHEET_INTERVIEW_SHEET_ID) {
-      const msg = 'Smartsheet config missing.';
-      console.error(msg);
-      return res.status(500).json({ success: false, error: msg });
+      return res.status(500).json({ success: false, error: "Missing config" });
     }
 
-    // Merge signature placeholders into form data (may be optional depending on usage)
-    if (signatures.hiringManager) formData.hiringManager = signatures.hiringManager;
-    if (signatures.reviewingManager) formData.reviewingManager = signatures.reviewingManager;
-    if (signatures.divisionHR) formData.divisionHR = signatures.divisionHR;
-
-    // Save or update interview data
     const savedId = await saveInterviewForm(formData, role);
-
-    // Attach each signature file as an attachment in Smartsheet
-    for (const sigRole of ["hiringManager", "reviewingManager", "divisionHR"]) {
-      if (signatures[sigRole] && signatures[sigRole].buffer) {
-        await attachFileToRow(
-          savedId,
-          signatures[sigRole].buffer,
-          `${sigRole}-signature-${Date.now()}-${signatures[sigRole].originalname}`,
-          signatures[sigRole].mimetype
-        );
-      }
-    }
 
     res.status(200).json({ success: true, interviewId: savedId });
   } catch (error) {
@@ -143,20 +126,18 @@ async function uploadSignatureAttachment(req, res) {
 // Get signature attachment URL for given role & row id
 async function getSignatureUrl(req, res) {
   try {
-    const { id, rowId } = req.params;
+    const { rowId, role } = req.params;
+    if (!rowId || !role) return res.status(400).json({ error: "Missing rowId or role" });
 
-    console.log("Get signature URL for id:", id, "rowId:", rowId);
-    if (!id || !rowId) return res.status(400).json({ error: "Missing id or role" });
+    const url = await smartsheetService.getSignatureAttachment(rowId, role);
 
-    const url = await getSignatureAttachment(id,rowId);
+    if (!url) {
+      return res.status(404).json({ success: false, message: "Signature not found" });
+    }
 
-    console.log('Retrieved signature URL:', url);
-    if (!url) return res.status(404).json({ error: "Signature not found" });
-
-    res.json({ success: true, url });
-
+    return res.json({ success: true, url });
   } catch (error) {
-    console.error('Error getting signature URL:', error);
+    console.error("Error fetching signature:", error);
     res.status(500).json({ error: error.message });
   }
 }

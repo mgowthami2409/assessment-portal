@@ -3,9 +3,17 @@ const axios = require("axios");
 const FormData = require("form-data");
 const smartsheet = require("smartsheet");
 const fs = require("fs");
+const { SMARTSHEET_API_TOKEN } = require("../config");
+// const config = require("../config");
 
-
+// const smartsheetClient = smartsheet.createClient({
+//   accessToken: config.SMARTSHEET_API_TOKEN,
+// });
 const SHEET_ID = process.env.SMARTSHEET_INTERVIEW_SHEET_ID
+
+const smartsheetClient = smartsheet.createClient({
+  accessToken: process.env.SMARTSHEET_API_TOKEN || process.env.SMARTSHEET_ACCESS_TOKEN,
+});
 
 const addAttachmentToRow = async ({ rowId, filePath, fileName, contentType }) => {
   const readStream = fs.createReadStream(filePath);
@@ -18,10 +26,6 @@ const addAttachmentToRow = async ({ rowId, filePath, fileName, contentType }) =>
   });
   return response;
 };
-
-const smartsheetClient = smartsheet.createClient({
-  accessToken: process.env.SMARTSHEET_ACCESS_TOKEN,
-});
 
 let cachedColumns = null;
 
@@ -209,7 +213,8 @@ async function attachFileToRow(rowId, fileBuffer, filename, mimeType) {
     const response = await axios.post(url, form, {
       headers: {
         ...form.getHeaders(),
-        Authorization: `Bearer ${process.env.SMARTSHEET_ACCESS_TOKEN}`,
+        // Authorization: `Bearer ${process.env.SMARTSHEET_ACCESS_TOKEN}`,
+        Authorization: `Bearer ${process.env.SMARTSHEET_ACCESS_TOKEN}`
       },
       maxContentLength: Infinity,
       maxBodyLength: Infinity,
@@ -238,17 +243,19 @@ async function saveInterviewForm(formData, role) {
 }
 
 async function getSignatureAttachment(rowId, role) {
-  console.log("Get UR Hiring Manager id:", rowId);
-    console.log("Get UR Hiring Manager role:", role);
   try {
-    const response = await smartsheetClient.sheets.attachments.listAttachments({
-      sheetId: Number(SHEET_ID),
-      rowId: Number(rowId),
-    });
+    const response = await axios.get(
+      `https://api.smartsheet.com/2.0/sheets/${SHEET_ID}/rows/${rowId}/attachments`,
+      {
+        headers: {
+          Authorization: `Bearer ${config.SMARTSHEET_API_TOKEN}`,
+        },
+      }
+    );
 
-    if (!response.data || response.data.length === 0) return null;
+    if (!response.data || !response.data.data || response.data.data.length === 0) return null;
 
-    const attachment = response.data.find((att) => att.name.includes(role));
+    const attachment = response.data.data.find((att) => att.name.includes(role));
     return attachment ? attachment.url : null;
   } catch (error) {
     console.error(`Error in getSignatureAttachment for row ${rowId} role ${role}:`, error);
