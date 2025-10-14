@@ -828,6 +828,53 @@ export default function InterviewAssessmentForm() {
               </div>
             </td>
 
+            {/* Division HR Signature & Name */}
+            <td style={styles.signatureBox}>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100%" }}>
+                <input
+                  type="text"
+                  placeholder="Division HR Name"
+                  value={formData.divisionHRName || ""}
+                  onChange={(e) => updateField("divisionHRName", e.target.value)}
+                  style={{
+                    marginTop: 6,
+                    marginBottom: 2,
+                    padding: "4px 6px",
+                    fontSize: 13,
+                    borderRadius: 4,
+                    border: "1px solid #ccc",
+                    width: "85%",
+                    alignSelf: "center",
+                    boxSizing: "border-box",
+                    height: 26,
+                    textAlign: "center",
+                  }}
+                />
+                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}>
+                  {signatures.divisionHR ? (
+                    <label style={{ cursor: "pointer", height: "100%" }}>
+                      <img src={signatures.divisionHR} alt="Division HR signature" style={styles.signatureImg} />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleSignatureUpload("divisionHR", e)}
+                        style={{ display: "none" }}
+                      />
+                    </label>
+                  ) : (
+                    <>
+                      {/* <span style={{ color: "#bbb", fontSize: 13, margin: "10px 0 4px 0" }}>No signature</span> */}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleSignatureUpload("divisionHR", e)}
+                        style={{ margin: "0 auto", display: "block" }}
+                      />
+                    </>
+                  )}
+                </div>
+              </div>
+            </td>
             {/* Reviewing Manager Signature & Name */}
             <td style={styles.signatureBox}>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100%" }}>
@@ -876,53 +923,6 @@ export default function InterviewAssessmentForm() {
               </div>
             </td>
 
-            {/* Division HR Signature & Name */}
-            <td style={styles.signatureBox}>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100%" }}>
-                <input
-                  type="text"
-                  placeholder="Division HR Name"
-                  value={formData.divisionHRName || ""}
-                  onChange={(e) => updateField("divisionHRName", e.target.value)}
-                  style={{
-                    marginTop: 6,
-                    marginBottom: 2,
-                    padding: "4px 6px",
-                    fontSize: 13,
-                    borderRadius: 4,
-                    border: "1px solid #ccc",
-                    width: "85%",
-                    alignSelf: "center",
-                    boxSizing: "border-box",
-                    height: 26,
-                    textAlign: "center",
-                  }}
-                />
-                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}>
-                  {signatures.divisionHR ? (
-                    <label style={{ cursor: "pointer", height: "100%" }}>
-                      <img src={signatures.divisionHR} alt="Division HR signature" style={styles.signatureImg} />
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleSignatureUpload("divisionHR", e)}
-                        style={{ display: "none" }}
-                      />
-                    </label>
-                  ) : (
-                    <>
-                      {/* <span style={{ color: "#bbb", fontSize: 13, margin: "10px 0 4px 0" }}>No signature</span> */}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleSignatureUpload("divisionHR", e)}
-                        style={{ margin: "0 auto", display: "block" }}
-                      />
-                    </>
-                  )}
-                </div>
-              </div>
-            </td>
           </tr>
 
         </tbody>
