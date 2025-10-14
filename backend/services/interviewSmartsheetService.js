@@ -208,7 +208,7 @@ async function attachFileToRow(rowId, fileBuffer, filename, mimeType) {
     const url = `https://api.smartsheet.com/2.0/sheets/${SHEET_ID}/rows/${rowId}/attachments`;
     // const url = `https://api.smartsheet.com/2.0/sheets/${SHEET_ID}/rows`;
 
-    console.log("Attaching file to row URL:", url);
+    // console.log("Attaching file to row URL:", url);
 
     const response = await axios.post(url, form, {
       headers: {

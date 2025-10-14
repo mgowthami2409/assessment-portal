@@ -46,25 +46,10 @@ export function getInterviewById(interviewId) {
   return API.get(`/interview/${interviewId}`);
 }
 
-// Fetch signature attachment URLs on a row for given interviewId and role
-// export function getSignatureUrl(rowId, role) {
-//   return API.get(`/interview/${rowId}/signature/${role}`).then(res => res.data);
-// }
 
-// Fetch signature attachment URL for a specific row and role
-// Fetch signature image via your backend proxy for given rowId and role
-// export function getSignatureUrl(rowId, role) {
-//   return API.get(`/interview/${rowId}/signature/${role}/image`, {
-//     responseType: 'blob', // optional if you want to process image blob
-//   }).then(res => {
-//     // If needed, convert blob to URL for <img src>
-//     return URL.createObjectURL(res.data);
-//   });
-// }
 export async function getSignatureImageUrl(rowId, role) {
   const response = await API.get(`/interview/${rowId}/signature/${role}/image`, { responseType: "blob" });
   return URL.createObjectURL(response.data);
 }
-
 
 export default API;

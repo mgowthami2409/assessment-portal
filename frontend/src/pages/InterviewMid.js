@@ -295,7 +295,26 @@ export default function InterviewAssessmentForm() {
 
     getInterviewById(currentInterviewId).then(async (res) => {
       if (!res.data.success) return alert("Interview data not found");
-      // set form data as before ...
+      const data = res.data.interview;
+       setFormData({
+          candidateName: data.candidateName || "",
+          competencies: data.competencies || Array(4).fill({ name: "", comments: "", rating: null }),
+          interviewDate: data.interviewDate || "",
+          interviewerName: data.interviewerName || "",
+          position: data.position || "",
+          location: data.location || "",
+          strengths: data.strengths || "",
+          improvementAreas: data.improvementAreas || "",
+          finalRecommendation: data.finalRecommendation || "",
+          overallComments: data.overallComments || "",
+          reviewingManagerName: data.reviewingManagerName || "",
+          divisionHRName: data.divisionHRName || "",
+          hiringManagerRecommendation: data.hiringManagerRecommendation || "",
+          behavioralAnswers: data.behavioralAnswers?.length === 6 ? data.behavioralAnswers : initialValuesData.map(() => ({
+            selectedQuestions: [],
+            notes: { circumstance: "", action: "", result: "" },
+          })),
+        });
 
       const roles = ["hiringManager", "reviewingManager", "divisionHR"];
       const urls = {};
