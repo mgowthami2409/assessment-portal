@@ -785,7 +785,7 @@ export default function InterviewAssessmentForm() {
       </div>
 
       <h3 style={{ ...styles.heading2, marginTop: 40 }}>Signatures</h3>
-<table style={styles.signatureTable}>
+      <table style={styles.signatureTable}>
         <thead>
           <tr>
             <th style={styles.signatureTh}>Hiring Manager</th>
