@@ -789,8 +789,8 @@ export default function InterviewAssessmentForm() {
         <thead>
           <tr>
             <th style={styles.signatureTh}>Hiring Manager</th>
+            <th style={styles.signatureTh}>Division HR</th>Division HR
             <th style={styles.signatureTh}>Reviewing Manager</th>
-            <th style={styles.signatureTh}>Division HR</th>
           </tr>
         </thead>
         <tbody>
@@ -810,6 +810,45 @@ export default function InterviewAssessmentForm() {
                       type="file"
                       accept="image/*"
                       onChange={(e) => handleSignatureUpload("hiringManager", e)}
+                      style={{ margin: "0 auto", display: "block" }}
+                    />
+                  )}
+                </div>
+              </div>
+            </td>
+
+
+            {/* 🔹 Division HR Signature + Name */}
+            <td style={styles.signatureBox}>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100%" }}>
+                <input
+                  type="text"
+                  placeholder="Division HR Name"
+                  value={formData.divisionHRName || ""}
+                  onChange={(e) => updateField("divisionHRName", e.target.value)}
+                  style={{
+                    marginTop: 6,
+                    marginBottom: 4,
+                    padding: "4px 6px",
+                    fontSize: 13,
+                    borderRadius: 4,
+                    border: "1px solid #ccc",
+                    width: "85%",
+                    textAlign: "center",
+                  }}
+                />
+                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}>
+                  {signaturePreviews.divisionHR ? (
+                    <img
+                      src={signaturePreviews.divisionHR}
+                      alt="Division HR Signature"
+                      style={styles.signatureImg}
+                    />
+                  ) : (
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleSignatureUpload("divisionHR", e)}
                       style={{ margin: "0 auto", display: "block" }}
                     />
                   )}
@@ -848,44 +887,6 @@ export default function InterviewAssessmentForm() {
                       type="file"
                       accept="image/*"
                       onChange={(e) => handleSignatureUpload("reviewingManager", e)}
-                      style={{ margin: "0 auto", display: "block" }}
-                    />
-                  )}
-                </div>
-              </div>
-            </td>
-
-            {/* 🔹 Division HR Signature + Name */}
-            <td style={styles.signatureBox}>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100%" }}>
-                <input
-                  type="text"
-                  placeholder="Division HR Name"
-                  value={formData.divisionHRName || ""}
-                  onChange={(e) => updateField("divisionHRName", e.target.value)}
-                  style={{
-                    marginTop: 6,
-                    marginBottom: 4,
-                    padding: "4px 6px",
-                    fontSize: 13,
-                    borderRadius: 4,
-                    border: "1px solid #ccc",
-                    width: "85%",
-                    textAlign: "center",
-                  }}
-                />
-                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}>
-                  {signaturePreviews.divisionHR ? (
-                    <img
-                      src={signaturePreviews.divisionHR}
-                      alt="Division HR Signature"
-                      style={styles.signatureImg}
-                    />
-                  ) : (
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleSignatureUpload("divisionHR", e)}
                       style={{ margin: "0 auto", display: "block" }}
                     />
                   )}
