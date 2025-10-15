@@ -785,11 +785,11 @@ export default function InterviewAssessmentForm() {
       </div>
 
       <h3 style={{ ...styles.heading2, marginTop: 40 }}>Signatures</h3>
-      <table style={styles.signatureTable}>
+<table style={styles.signatureTable}>
         <thead>
           <tr>
             <th style={styles.signatureTh}>Hiring Manager</th>
-            <th style={styles.signatureTh}>Division HR</th>Division HR
+            <th style={styles.signatureTh}>Division HR</th>
             <th style={styles.signatureTh}>Reviewing Manager</th>
           </tr>
         </thead>
@@ -816,8 +816,7 @@ export default function InterviewAssessmentForm() {
                 </div>
               </div>
             </td>
-
-
+            
             {/* 🔹 Division HR Signature + Name */}
             <td style={styles.signatureBox}>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100%" }}>
