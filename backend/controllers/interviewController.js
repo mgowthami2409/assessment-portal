@@ -142,10 +142,31 @@ async function getSignatureUrl(req, res) {
   }
 }
 
+// async function getAllSignatures(req, res) {
+//   const { rowId } = req.params;
+
+//   if (!rowId) return res.status(400).json({ error: "Missing rowId" });
+
+//   try {
+//     const urls = await smartsheetService.getAllSignatureAttachments(rowId);
+
+//     // Check if at least one signature found
+//     if (!urls || Object.values(urls).every((val) => val === null)) {
+//       return res.status(404).json({ success: false, message: "No signatures found" });
+//     }
+
+//     res.json({ success: true, urls });
+//   } catch (error) {
+//     console.error("Error fetching signatures:", error);
+//     res.status(500).json({ success: false, error: error.message });
+//   }
+// }
+
 module.exports = {
   submitInterviewForm,
   fetchInterviewById,
   shareInterview,
   uploadSignatureAttachment,
   getSignatureUrl,
+  // getAllSignatures,
 };

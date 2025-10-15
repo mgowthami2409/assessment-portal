@@ -8,6 +8,7 @@ const {
   shareInterview,
   uploadSignatureAttachment,
   getSignatureUrl,
+  // getAllSignatures,
 } = require("../controllers/interviewController");
 
 const router = express.Router();
@@ -27,6 +28,8 @@ router.post("/:id/signature", upload.single("file"), uploadSignatureAttachment);
 
 // Get signature URL for role and interview row
 router.get("/:rowId/signature/:role", getSignatureUrl);
+
+// router.get("/:rowId/signatures", getAllSignatures);
 
 // New route: Proxy signature image by role on a row through backend
 router.get("/:rowId/signature/:role/image", async (req, res) => {

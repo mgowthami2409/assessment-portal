@@ -52,4 +52,9 @@ export async function getSignatureImageUrl(rowId, role) {
   return URL.createObjectURL(response.data);
 }
 
+// export function getAllSignatureUrls(rowId) {
+//   return API.get(`/interview/${rowId}/signatures`).then(res => res.data);
+// }
+
+
 export default API;
