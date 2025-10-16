@@ -300,26 +300,36 @@ export default function InterviewAssessmentForm() {
     getInterviewById(currentInterviewId).then(async (res) => {
       if (!res.data.success) return alert("Interview data not found");
       const data = res.data.interview;
-       setFormData({
-          candidateName: data.candidateName || "",
-          competencies: data.competencies || Array(4).fill({ name: "", comments: "", rating: null }),
-          interviewDate: data.interviewDate || "",
-          interviewerName: data.interviewerName || "",
-          position: data.position || "",
-          location: data.location || "",
-          strengths: data.strengths || "",
-          improvementAreas: data.improvementAreas || "",
-          finalRecommendation: data.finalRecommendation || "",
-          overallComments: data.overallComments || "",
-          reviewingManagerName: data.reviewingManagerName || "",
-          divisionHRName: data.divisionHRName || "",
-          hiringManagerRecommendation: data.hiringManagerRecommendation || "",
-          behavioralAnswers: data.behavioralAnswers?.length === 6 ? data.behavioralAnswers : initialValuesData.map(() => ({
-            selectedQuestions: [],
-            notes: { circumstance: "", action: "", result: "" },
-          })),
-        });
 
+      // Initialize formData with all fields, provide defaults to avoid missing keys
+      setFormData({
+        candidateName: data.candidateName || "",
+        competencies: Array.isArray(data.competencies) && data.competencies.length > 0
+          ? data.competencies
+          : Array(4).fill({ name: "", comments: "", rating: null }),
+        interviewDate: data.interviewDate || "",
+        interviewerName: data.interviewerName || "",
+        position: data.position || "",
+        location: data.location || "",
+        strengths: data.strengths || "",
+        improvementAreas: data.improvementAreas || "",
+        finalRecommendation: data.finalRecommendation || "",
+        overallComments: data.overallComments || "",
+        reviewingManagerName: data.reviewingManagerName || "",
+        divisionHRName: data.divisionHRName || "",
+        hiringManagerRecommendation: data.hiringManagerRecommendation || "",
+        strengthsHM: data.strengthsHM || "",
+        improvementAreasHM: data.improvementAreasHM || "",
+        overallCommentsHM: data.overallCommentsHM || "",
+        behavioralAnswers: Array.isArray(data.behavioralAnswers) && data.behavioralAnswers.length === 6
+          ? data.behavioralAnswers
+          : initialValuesData.map(() => ({
+              selectedQuestions: [],
+              notes: { circumstance: "", action: "", result: "" },
+            })),
+      });
+
+      // Load signature previews for each role
       const roles = ["hiringManager", "reviewingManager", "divisionHR"];
       const urls = {};
       for (const role of roles) {
@@ -346,7 +356,11 @@ export default function InterviewAssessmentForm() {
       delete formDataToSubmit.reviewingManager;
       delete formDataToSubmit.divisionHR;
 
-      const response = await submitInterviewForm(formDataToSubmit, interviewId);
+      // Add interviewId explicitly for update identification
+      if (currentInterviewId) {
+        formDataToSubmit.interviewId = currentInterviewId;
+      }
+      const response = await submitInterviewForm(formDataToSubmit, currentInterviewId);
 
       if (!response.data.success) throw new Error("Form submission failed");
 
@@ -895,7 +909,7 @@ export default function InterviewAssessmentForm() {
           </tr>
         </tbody>
       </table>
-
+                  
       <div style={styles.btnGroup}>
       <button onClick={handleSubmitAndShare} style={{ ...styles.btn, backgroundColor: "#bd2331" }}>
         Submit & Share
