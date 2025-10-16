@@ -342,17 +342,17 @@ export default function InterviewAssessmentForm() {
     });
   }, [currentInterviewId]);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmitAndShare = async () => {
+    setIsSubmitting(true);
     try {
-      // Submit form data WITHOUT signatures (they upload separately)
+      // Your existing submit logic here
       const formDataToSubmit = { ...formData };
-      
-      // Remove signature files from formData if present
       delete formDataToSubmit.hiringManager;
       delete formDataToSubmit.reviewingManager;
       delete formDataToSubmit.divisionHR;
 
-      // Add interviewId explicitly for update identification
       if (currentInterviewId) {
         formDataToSubmit.interviewId = currentInterviewId;
       }
@@ -363,7 +363,7 @@ export default function InterviewAssessmentForm() {
       const newId = response.data.interviewId;
       setInterviewId(newId);
 
-      // Upload signatures separately if they exist
+      // Upload signatures separately if exist
       for (const role of ["hiringManager", "reviewingManager", "divisionHR"]) {
         const file = signatures[role];
         if (file instanceof File) {
@@ -377,7 +377,6 @@ export default function InterviewAssessmentForm() {
 
       alert("Form saved successfully!");
 
-      // Mail sharing logic...
       const link = `${window.location.origin}/interview/mid/${newId}`;
       const subject = encodeURIComponent("Interview Assessment Form");
       const body = encodeURIComponent(
@@ -387,6 +386,8 @@ export default function InterviewAssessmentForm() {
     } catch (err) {
       console.error(err);
       alert("Error saving form");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -907,8 +908,8 @@ export default function InterviewAssessmentForm() {
       </table>
                   
       <div style={styles.btnGroup}>
-      <button onClick={handleSubmitAndShare} style={{ ...styles.btn, backgroundColor: "#bd2331" }}>
-        Submit & Share
+      <button onClick={handleSubmitAndShare} style={{ ...styles.btn, backgroundColor: "#bd2331" }} disabled={isSubmitting}>
+        {isSubmitting ? "Submitting..." : "Submit & Share"}
       </button>
       <button
         onClick={() => window.print()}
