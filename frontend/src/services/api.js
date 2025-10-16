@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:9090/api";
+const BASE_URL = process.env.REACT_APP_API_URL || "https://suprajit-portal.onrender.com/api";
 
 const API = axios.create({
   baseURL: process.env.REACT_APP_API_BASE_URL || BASE_URL,
@@ -43,12 +43,10 @@ export const uploadSignatureAttachment = async (interviewId, file, role) => {
   }
 };
 
-
 // Fetch interview form by ID
 export function getInterviewById(interviewId) {
   return API.get(`/interview/${interviewId}`);
 }
-
 
 export async function getSignatureImageUrl(rowId, role) {
   const response = await API.get(`/interview/${rowId}/signature/${role}/image`, { responseType: "blob" });
