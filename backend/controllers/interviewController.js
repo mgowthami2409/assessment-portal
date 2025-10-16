@@ -12,9 +12,14 @@ const upload = multer({ dest: 'uploads/' }); // for file uploads
 // Controller to submit or update interview form and upload associated signatures
 async function submitInterviewForm(req, res) {
   try {
-    const { formData = {}, role } = req.body;
+    const { formData = {}, role, interviewId } = req.body;
     if (!config.SMARTSHEET_API_TOKEN || !config.SMARTSHEET_INTERVIEW_SHEET_ID) {
       return res.status(500).json({ success: false, error: "Missing config" });
+    }
+
+    // Merge interviewId into formData so saveInterviewForm knows to update existing row
+    if (interviewId) {
+      formData.interviewId = interviewId;
     }
 
     const savedId = await saveInterviewForm(formData, role);
@@ -142,31 +147,10 @@ async function getSignatureUrl(req, res) {
   }
 }
 
-// async function getAllSignatures(req, res) {
-//   const { rowId } = req.params;
-
-//   if (!rowId) return res.status(400).json({ error: "Missing rowId" });
-
-//   try {
-//     const urls = await smartsheetService.getAllSignatureAttachments(rowId);
-
-//     // Check if at least one signature found
-//     if (!urls || Object.values(urls).every((val) => val === null)) {
-//       return res.status(404).json({ success: false, message: "No signatures found" });
-//     }
-
-//     res.json({ success: true, urls });
-//   } catch (error) {
-//     console.error("Error fetching signatures:", error);
-//     res.status(500).json({ success: false, error: error.message });
-//   }
-// }
-
 module.exports = {
   submitInterviewForm,
   fetchInterviewById,
   shareInterview,
   uploadSignatureAttachment,
   getSignatureUrl,
-  // getAllSignatures,
 };

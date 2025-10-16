@@ -4,11 +4,7 @@ const FormData = require("form-data");
 const smartsheet = require("smartsheet");
 const fs = require("fs");
 const { SMARTSHEET_API_TOKEN } = require("../config");
-// const config = require("../config");
 
-// const smartsheetClient = smartsheet.createClient({
-//   accessToken: config.SMARTSHEET_API_TOKEN,
-// });
 const SHEET_ID = process.env.SMARTSHEET_INTERVIEW_SHEET_ID
 
 const smartsheetClient = smartsheet.createClient({
@@ -148,7 +144,8 @@ async function updateRowWithInterviewData(rowId, formData) {
     cells,
   };
 
-  await smartsheetClient.sheets.updateRows({ sheetId: SHEET_ID, body: [updateRequest] });
+  // await smartsheetClient.sheets.updateRows({ sheetId: SHEET_ID, body: [updateRequest] });
+  await smartsheetClient.sheets.updateRow({ sheetId: SHEET_ID, rowId: Number(rowId), body: updateRequest });
   return String(rowId);
 }
 
@@ -238,6 +235,7 @@ async function saveInterviewForm(formData, role) {
   if (rowId) {
     return updateRowWithInterviewData(rowId, formData);
   } else {
+    console.log("Added new row with ID:", formData);
     return addRowWithInterviewData(formData);
   }
 }
@@ -263,49 +261,6 @@ async function getSignatureAttachment(rowId, role) {
   }
 }
 
-// async function getAllSignatureAttachments(rowId) {
-//   try {
-//     const response = await axios.get(
-//       `https://api.smartsheet.com/2.0/sheets/${SHEET_ID}/rows/${rowId}/attachments`,
-//       {
-//         headers: {
-//           Authorization: `Bearer ${process.env.SMARTSHEET_API_TOKEN}`,
-//         },
-//       }
-//     );
-
-//     // Return empty object if no attachments
-//     if (!response.data || !response.data.data || response.data.data.length === 0) {
-//       return {};
-//     }
-
-//     const attachments = response.data.data;
-
-//     // Create an object mapping roles to attachment URLs
-//     const roleAttachments = {
-//       hiringManager: null,
-//       reviewingManager: null,
-//       divisionHR: null,
-//     };
-
-//     attachments.forEach((att) => {
-//       const nameLower = att.name.toLowerCase();
-//       if (nameLower.includes("hiringmanager")) {
-//         roleAttachments.hiringManager = att.url;
-//       } else if (nameLower.includes("reviewingmanager")) {
-//         roleAttachments.reviewingManager = att.url;
-//       } else if (nameLower.includes("divisionhr")) {
-//         roleAttachments.divisionHR = att.url;
-//       }
-//     });
-
-//     return roleAttachments;
-//   } catch (error) {
-//     console.error(`Error fetching all signature attachments for row ${rowId}:`, error);
-//     throw error;
-//   }
-// }
-
 module.exports = {
   getSheetColumns,
   addRowWithInterviewData,
@@ -315,5 +270,4 @@ module.exports = {
   saveInterviewForm,
   getSignatureAttachment,
   addAttachmentToRow,
-  // getAllSignatureAttachments
 };

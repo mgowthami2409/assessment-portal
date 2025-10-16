@@ -271,19 +271,6 @@ export default function InterviewAssessmentForm() {
     divisionHR: null,
   });
 
-  const fetchAllSignaturePreviews = async (rowId) => {
-    const roles = ["hiringManager", "reviewingManager", "divisionHR"];
-    const urls = {};
-    for (const role of roles) {
-      try {
-        urls[role] = await getSignatureImageUrl(rowId, role);
-      } catch (err) {
-        urls[role] = null;
-      }
-    }
-    setSignaturePreviews(urls);
-  };
-
   // Function to handle signature selection
   const handleSignatureUpload = (role, e) => {
     const file = e.target.files[0];
@@ -309,26 +296,36 @@ export default function InterviewAssessmentForm() {
     getInterviewById(currentInterviewId).then(async (res) => {
       if (!res.data.success) return alert("Interview data not found");
       const data = res.data.interview;
-       setFormData({
-          candidateName: data.candidateName || "",
-          competencies: data.competencies || Array(4).fill({ name: "", comments: "", rating: null }),
-          interviewDate: data.interviewDate || "",
-          interviewerName: data.interviewerName || "",
-          position: data.position || "",
-          location: data.location || "",
-          strengths: data.strengths || "",
-          improvementAreas: data.improvementAreas || "",
-          finalRecommendation: data.finalRecommendation || "",
-          overallComments: data.overallComments || "",
-          reviewingManagerName: data.reviewingManagerName || "",
-          divisionHRName: data.divisionHRName || "",
-          hiringManagerRecommendation: data.hiringManagerRecommendation || "",
-          behavioralAnswers: data.behavioralAnswers?.length === 6 ? data.behavioralAnswers : initialValuesData.map(() => ({
-            selectedQuestions: [],
-            notes: { circumstance: "", action: "", result: "" },
-          })),
-        });
 
+      // Initialize formData with all fields, provide defaults to avoid missing keys
+      setFormData({
+        candidateName: data.candidateName || "",
+        competencies: Array.isArray(data.competencies) && data.competencies.length > 0
+          ? data.competencies
+          : Array(4).fill({ name: "", comments: "", rating: null }),
+        interviewDate: data.interviewDate || "",
+        interviewerName: data.interviewerName || "",
+        position: data.position || "",
+        location: data.location || "",
+        strengths: data.strengths || "",
+        improvementAreas: data.improvementAreas || "",
+        finalRecommendation: data.finalRecommendation || "",
+        overallComments: data.overallComments || "",
+        reviewingManagerName: data.reviewingManagerName || "",
+        divisionHRName: data.divisionHRName || "",
+        hiringManagerRecommendation: data.hiringManagerRecommendation || "",
+        strengthsHM: data.strengthsHM || "",
+        improvementAreasHM: data.improvementAreasHM || "",
+        overallCommentsHM: data.overallCommentsHM || "",
+        behavioralAnswers: Array.isArray(data.behavioralAnswers) && data.behavioralAnswers.length === 6
+          ? data.behavioralAnswers
+          : initialValuesData.map(() => ({
+              selectedQuestions: [],
+              notes: { circumstance: "", action: "", result: "" },
+            })),
+      });
+
+      // Load signature previews for each role
       const roles = ["hiringManager", "reviewingManager", "divisionHR"];
       const urls = {};
       for (const role of roles) {
@@ -355,13 +352,18 @@ export default function InterviewAssessmentForm() {
       delete formDataToSubmit.reviewingManager;
       delete formDataToSubmit.divisionHR;
 
-      const response = await submitInterviewForm(formDataToSubmit, interviewId);
+      // Add interviewId explicitly for update identification
+      if (currentInterviewId) {
+        formDataToSubmit.interviewId = currentInterviewId;
+      }
+      const response = await submitInterviewForm(formDataToSubmit, currentInterviewId);
 
       if (!response.data.success) throw new Error("Form submission failed");
 
       const newId = response.data.interviewId;
       setInterviewId(newId);
 
+      // Upload signatures separately if they exist
       for (const role of ["hiringManager", "reviewingManager", "divisionHR"]) {
         const file = signatures[role];
         if (file instanceof File) {
@@ -372,9 +374,6 @@ export default function InterviewAssessmentForm() {
           }
         }
       }
-
-      // After all uploads, fetch all signature previews again!
-      await fetchAllSignaturePreviews(newId);
 
       alert("Form saved successfully!");
 
