@@ -718,22 +718,22 @@ export default function InterviewAssessmentForm() {
       <label style={styles.inputLabel}>Strengths:</label>
       <textarea
         style={styles.textareaStyle}
-        value={formData.strengths}
-        onChange={(e) => updateField("strengths", e.target.value)}
+        value={formData.strengthsHM}
+        onChange={(e) => updateField("strengthsHM", e.target.value)}
       />
 
       <label style={styles.inputLabel}>Areas of Improvement:</label>
       <textarea
         style={styles.textareaStyle}
-        value={formData.improvementAreas}
-        onChange={(e) => updateField("improvementAreas", e.target.value)}
+        value={formData.improvementAreasHM}
+        onChange={(e) => updateField("improvementAreasHM", e.target.value)}
       />
 
       <label style={styles.inputLabel}>Overall Comments:</label>
       <textarea
         style={styles.textareaStyle}
-        value={formData.overallComments}
-        onChange={(e) => updateField("overallComments", e.target.value)}
+        value={formData.overallCommentsHM}
+        onChange={(e) => updateField("overallCommentsHM", e.target.value)}
       />
 
       <h3 style={{ ...styles.heading2, marginTop: 40 }}>Recommendation by the Hiring Manager</h3>
@@ -850,21 +850,21 @@ export default function InterviewAssessmentForm() {
       <label style={styles.inputLabel}>Strengths:</label>
       <textarea
         style={styles.textareaStyle}
-        value={formData.strengthsHM}
+        value={formData.strengths}
         onChange={(e) => updateField("strengths", e.target.value)}
       />
 
       <label style={styles.inputLabel}>Areas of Improvement:</label>
       <textarea
         style={styles.textareaStyle}
-        value={formData.improvementAreasHM}
+        value={formData.improvementAreas}
         onChange={(e) => updateField("improvementAreas", e.target.value)}
       />
 
       <label style={styles.inputLabel}>Overall Comments:</label>
       <textarea
         style={styles.textareaStyle}
-        value={formData.overallCommentsHM}
+        value={formData.overallComments}
         onChange={(e) => updateField("overallComments", e.target.value)}
       />
 
