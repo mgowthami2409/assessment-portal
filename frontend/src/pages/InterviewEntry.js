@@ -258,6 +258,9 @@ export default function InterviewAssessmentForm() {
     hiringManagerRecommendation: "",
     behavioralAnswersHM: initialBehavioralAnswersHM,
     behavioralAnswers: initialBehavioralAnswers,
+    strengthsHM: "",
+    improvementAreasHM: "",
+    overallCommentsHM: "",
   });
 
   const updateField = (field, value) => {
