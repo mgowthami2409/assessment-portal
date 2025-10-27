@@ -9,71 +9,76 @@ import {
 } from "../services/api";
 import suprajitLogo from '../assets/suprajit_logo_BG.png';
 
-const initialValuesData = [
+// Define skills list (unchanged)
+const skillsList = [
   {
-    id: "respect",
-    title: "Value 1: Respect",
-    questions: [
-      "Can you describe a time when you had to work with someone from a different background or with different beliefs than yours? How did you ensure mutual respect in that situation?",
-      "Tell me about a time when you had a disagreement with a colleague. How did you handle it while maintaining respect for each other?",
-      "Give me an example of a situation where you had to work with someone who was difficult to get along with. How did you approach the relationship to ensure respect and collaboration?",
-      "Imagine you are working on a team project, and a team member consistently interrupts others during meetings. How would you address this behaviour while respecting their contributions and maintaining a positive team atmosphere?",
-      "You notice that a colleague consistently arrives late to team meetings, which disrupts the schedule. How would you approach this situation while respecting their time and commitment?",
+    id: 1,
+    title: "Critical Thinking & Problem Solving",
+    desc: "Assessing problems, identifying root causes, and finding flexible solutions.",
+    bullets: [
+      "Breaks complex problems into parts",
+      "Uses logic and data to support decisions",
+      "Adapts solutions to changing situations",
     ],
   },
   {
-    id: "transparency",
-    title: "Value 2: Transparency",
-    questions: [
-      "Can you give an example of a time when you had to communicate transparently in a team setting?",
-      "What steps would you take to promote a culture of transparency within a team or organization?",
-      "How do you handle situations where information might be sensitive or confidential, but there is a need for transparency?",
-      "Have you ever experienced a lack of transparency in a previous role? How did you handle it?",
+    id: 2,
+    title: "Time Management",
+    desc: "Prioritizing tasks, meeting deadlines, avoiding incomplete multitasking.",
+    bullets: [
+      "Completes work on time",
+      "Prioritizes critical tasks",
+      "Avoids juggling multiple unfinished tasks",
     ],
   },
   {
-    id: "adaptability",
-    title: "Value 3: Adaptability",
-    questions: [
-      "Can you describe a situation where you were given a new task or responsibility that was outside of your comfort zone? How did you approach it?",
-      "Give an example of when you had to quickly learn a new skill or tool to complete a task or project. How did you go about it?",
-      "Have you ever faced a setback or obstacle while working on a project or task? How did you adapt and continue to make progress?",
-      "Describe a situation where you had to change your approach or strategy midway through a project due to new information or unexpected challenges. How did you handle it?",
-      "Tell me about a time when you had to adapt to a significant change in your work or academic environment. How did you handle it?",
+    id: 3,
+    title: "Communication",
+    desc: "Sharing ideas, listening actively, and giving feedback.",
+    bullets: [
+      "Communicates clearly",
+      "Listens actively",
+      "Provides constructive feedback",
     ],
   },
   {
-    id: "collaboration",
-    title: "Value 4: Collaboration",
-    questions: [
-      "Describe a situation where you had to work with someone who had a different working style or personality than yours. How did you handle the collaboration, and what was the outcome?",
-      "Give an example of a successful collaboration experience you've had. What factors do you think contributed to the success of that collaboration?",
-      "How do you handle disagreements or conflicts within a team environment? Can you share an example of a time when you successfully resolved a conflict with a teammate?",
-      "How do you prioritize tasks and manage your time when working on a team project with deadlines? Can you provide an example from your previous experiences?",
-      "Can you provide an example of a time when you worked as part of a team to achieve a goal or complete a project? What was your role, and how did you contribute?",
+    id: 4,
+    title: "Teamwork & Collaboration",
+    desc: "Working with respect, trust, and cooperation.",
+    bullets: [
+      "Supports teammates",
+      "Shares credit",
+      "Resolves conflict constructively",
     ],
   },
   {
-    id: "customer",
-    title: "Value 5: Focus on Customer",
-    questions: [
-      "Can you describe a time when you went above and beyond to help a customer or client? What was the outcome?",
-      "Tell me about a situation where you had to handle a difficult customer. How did you approach the situation and what was the result?",
-      "How do you ensure that you understand the needs and expectations of customers or clients? Can you provide an example?",
-      "Have you ever encountered a situation where you had to deliver bad news to a customer? How did you handle it?",
-      "How do you handle a situation where a customer is dissatisfied with your company's product or service?",
-      "How do you stay motivated to deliver excellent customer service, especially during busy or challenging times?",
+    id: 5,
+    title: "Self-Motivation & Accountability",
+    desc: "Being proactive, self-driven, and responsible.",
+    bullets: [
+      "Takes initiative",
+      "Accepts responsibility",
+      "Learns from mistakes",
     ],
   },
   {
-    id: "innovation",
-    title: "Value 6: Innovation",
-    questions: [
-      "Describe a situation where you generated a creative idea to solve a problem. What was the idea, and what impact did it have?",
-      "Can you give an example of a time you faced a challenge that required thinking outside the box? What was your approach, and what was the result?",
-      "Can you share an experience where you had to adapt your innovative idea based on feedback or unforeseen circumstances? What adjustments did you make?",
-      "Have you ever proposed an idea that didn’t work out as planned? How did you respond to the failure, and what did you learn from it?",
-      "Give an example of a process or system you improved through innovation. What was the original process, and what changes did you implement?",
+    id: 6,
+    title: "Continuous Learning",
+    desc: "Willingness to learn and stay updated.",
+    bullets: [
+      "Seeks new knowledge",
+      "Learns from feedback",
+      "Applies skills",
+    ],
+  },
+  {
+    id: 7,
+    title: "Emotional Intelligence",
+    desc: "Understanding emotions, maintaining composure.",
+    bullets: [
+      "Manages stress",
+      "Shows empathy",
+      "Builds relationships",
     ],
   },
 ];
@@ -225,6 +230,18 @@ export default function InterviewAssessmentForm() {
   const [interviewId, setInterviewId] = useState(null);
   const currentInterviewId = interviewId || interviewIdFromParams;
 
+  const initialBehavioralAnswersHM = skillsList.map(skill => ({
+    skillId: skill.id,
+    rating: 0,
+    comments: ""
+  }));
+
+  const initialBehavioralAnswers = skillsList.map(skill => ({
+    skillId: skill.id,
+    rating: 0,
+    comments: ""
+  }));
+
   const [formData, setFormData] = useState({
     candidateName: "",
     competencies: Array(4).fill({ name: "", comments: "", rating: null }),
@@ -239,22 +256,15 @@ export default function InterviewAssessmentForm() {
     reviewingManagerName: "",
     divisionHRName: "",
     hiringManagerRecommendation: "",
-    behavioralAnswers: initialValuesData.map(() => ({
-      selectedQuestions: [],
-      notes: { circumstance: "", action: "", result: "" },
-    })),
+    behavioralAnswersHM: initialBehavioralAnswersHM,
+    behavioralAnswers: initialBehavioralAnswers,
+    strengthsHM: "",
+    improvementAreasHM: "",
+    overallCommentsHM: "",
   });
 
   const updateField = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const updateBehavioralNote = (idx, field, value) => {
-    setFormData((prev) => {
-      const copy = [...prev.behavioralAnswers];
-      copy[idx].notes[field] = value;
-      return { ...prev, behavioralAnswers: copy };
-    });
   };
 
   const [signatures, setSignatures] = useState({
@@ -294,26 +304,34 @@ export default function InterviewAssessmentForm() {
     getInterviewById(currentInterviewId).then(async (res) => {
       if (!res.data.success) return alert("Interview data not found");
       const data = res.data.interview;
-       setFormData({
-          candidateName: data.candidateName || "",
-          competencies: data.competencies || Array(4).fill({ name: "", comments: "", rating: null }),
-          interviewDate: data.interviewDate || "",
-          interviewerName: data.interviewerName || "",
-          position: data.position || "",
-          location: data.location || "",
-          strengths: data.strengths || "",
-          improvementAreas: data.improvementAreas || "",
-          finalRecommendation: data.finalRecommendation || "",
-          overallComments: data.overallComments || "",
-          reviewingManagerName: data.reviewingManagerName || "",
-          divisionHRName: data.divisionHRName || "",
-          hiringManagerRecommendation: data.hiringManagerRecommendation || "",
-          behavioralAnswers: data.behavioralAnswers?.length === 6 ? data.behavioralAnswers : initialValuesData.map(() => ({
-            selectedQuestions: [],
-            notes: { circumstance: "", action: "", result: "" },
-          })),
-        });
 
+      // Initialize formData with all fields, provide defaults to avoid missing keys
+      setFormData({
+        candidateName: data.candidateName || "",
+        competencies: Array.isArray(data.competencies) && data.competencies.length > 0
+          ? data.competencies
+          : Array(4).fill({ name: "", comments: "", rating: null }),
+        interviewDate: data.interviewDate || "",
+        interviewerName: data.interviewerName || "",
+        position: data.position || "",
+        location: data.location || "",
+        strengths: data.strengths || "",
+        improvementAreas: data.improvementAreas || "",
+        finalRecommendation: data.finalRecommendation || "",
+        overallComments: data.overallComments || "",
+        reviewingManagerName: data.reviewingManagerName || "",
+        divisionHRName: data.divisionHRName || "",
+        hiringManagerRecommendation: data.hiringManagerRecommendation || "",
+        strengthsHM: data.strengthsHM || "",
+        improvementAreasHM: data.improvementAreasHM || "",
+        overallCommentsHM: data.overallCommentsHM || "",
+        behavioralAnswers: Array.isArray(data.behavioralAnswers) && data.behavioralAnswers.length === skillsList.length
+          ? data.behavioralAnswers : initialBehavioralAnswers,
+        behavioralAnswersHM: Array.isArray(data.behavioralAnswersHM) && data.behavioralAnswersHM.length === skillsList.length
+          ? data.behavioralAnswersHM : initialBehavioralAnswersHM,
+      });
+
+      // Load signature previews for each role
       const roles = ["hiringManager", "reviewingManager", "divisionHR"];
       const urls = {};
       for (const role of roles) {
@@ -330,24 +348,28 @@ export default function InterviewAssessmentForm() {
     });
   }, [currentInterviewId]);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmitAndShare = async () => {
+    setIsSubmitting(true);
     try {
-      // Submit form data WITHOUT signatures (they upload separately)
+      // Your existing submit logic here
       const formDataToSubmit = { ...formData };
-      
-      // Remove signature files from formData if present
       delete formDataToSubmit.hiringManager;
       delete formDataToSubmit.reviewingManager;
       delete formDataToSubmit.divisionHR;
 
-      const response = await submitInterviewForm(formDataToSubmit, interviewId);
+      if (currentInterviewId) {
+        formDataToSubmit.interviewId = currentInterviewId;
+      }
+      const response = await submitInterviewForm(formDataToSubmit, currentInterviewId);
 
       if (!response.data.success) throw new Error("Form submission failed");
 
       const newId = response.data.interviewId;
       setInterviewId(newId);
 
-      // Upload signatures separately if they exist
+      // Upload signatures separately if exist
       for (const role of ["hiringManager", "reviewingManager", "divisionHR"]) {
         const file = signatures[role];
         if (file instanceof File) {
@@ -361,7 +383,6 @@ export default function InterviewAssessmentForm() {
 
       alert("Form saved successfully!");
 
-      // Mail sharing logic...
       const link = `${window.location.origin}/interview/entry/${newId}`;
       const subject = encodeURIComponent("Interview Assessment Form");
       const body = encodeURIComponent(
@@ -371,6 +392,8 @@ export default function InterviewAssessmentForm() {
     } catch (err) {
       console.error(err);
       alert("Error saving form");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -607,25 +630,110 @@ export default function InterviewAssessmentForm() {
         </button>
       </div>
 
+      <h3 style={{ ...styles.heading2, marginTop: 32 }}>
+        Behavioral Interview Questions (To be updated by the Hiring Manager)
+      </h3>
+
+      {skillsList.map((skill, idx) => (
+        <section
+          key={skill.id}
+          style={{
+            padding: 15,
+            marginBottom: 20,
+            borderTop: "1px solid #606060",
+            borderBottom: "1px solid #606060",
+            borderRight: "1px solid #606060",
+            borderLeft: "6px solid #bd2331",
+            borderRadius: 5,
+            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+          }}
+        >
+          <h3 style={{ margin: 0, marginBottom: 5, color: "#1e4489" }}>
+            {`${skill.id}. ${skill.title}`}
+          </h3>
+          <p style={{ fontStyle: "italic", color: "#606060" }}>{skill.desc}</p>
+          <ul style={{ margin: "5px 0 15px 20px", color: "#333" }}>
+            {skill.bullets.map((point, pidx) => (
+              <li key={pidx}>{point}</li>
+            ))}
+          </ul>
+
+          <label>Rating (1-5): </label>
+          <select
+            name={`behavioralHM_skill${skill.id}`}
+            value={formData.behavioralAnswersHM[idx]?.rating || 0}
+            required
+            onChange={e => {
+              const updated = [...formData.behavioralAnswersHM];
+              updated[idx] = {
+                ...updated[idx],
+                rating: Number(e.target.value)
+              };
+              setFormData(f => ({ ...f, behavioralAnswersHM: updated }));
+            }}
+            style={{
+              width: "100%",
+              padding: 10,
+              marginTop: 5,
+              borderRadius: 5,
+              paddingBottom: 10,
+              border: "1px solid #ccc",
+              boxSizing: "border-box",
+            }}
+          >
+            <option value="0">Select</option>
+            {[1, 2, 3, 4, 5].map((v) => (
+              <option key={v} value={v}>
+                {v} - {["Poor", "Fair", "Good", "Very Good", "Excellent"][v - 1]}
+              </option>
+            ))}
+          </select>
+
+          <label style={{ marginTop: 10 }}>Comments:</label>
+          <textarea
+            name={`behavioralHM_skill${skill.id}_comments`}
+            value={formData.behavioralAnswersHM[idx]?.comments || ""}
+            onChange={e => {
+              const updated = [...formData.behavioralAnswersHM];
+              updated[idx] = {
+                ...updated[idx],
+                comments: e.target.value
+              };
+              setFormData(f => ({ ...f, behavioralAnswersHM: updated }));
+            }}
+            rows={3}
+            style={{
+              width: "100%",
+              padding: 10,
+              marginTop: 5,
+              borderRadius: 5,
+              border: "1px solid #ccc",
+              resize: "vertical",
+              boxSizing: "border-box",
+            }}
+          />
+        </section>
+      ))}
+
       <label style={styles.inputLabel}>Strengths:</label>
       <textarea
         style={styles.textareaStyle}
-        value={formData.strengths}
-        onChange={(e) => updateField("strengths", e.target.value)}
+        value={formData.strengthsHM}
+        onChange={(e) => updateField("strengthsHM", e.target.value)}
       />
 
       <label style={styles.inputLabel}>Areas of Improvement:</label>
       <textarea
         style={styles.textareaStyle}
-        value={formData.improvementAreas}
-        onChange={(e) => updateField("improvementAreas", e.target.value)}
+        value={formData.improvementAreasHM}
+        onChange={(e) => updateField("improvementAreasHM", e.target.value)}
       />
 
       <label style={styles.inputLabel}>Overall Comments:</label>
       <textarea
         style={styles.textareaStyle}
-        value={formData.overallComments}
-        onChange={(e) => updateField("overallComments", e.target.value)}
+        value={formData.overallCommentsHM}
+        onChange={(e) => updateField("overallCommentsHM", e.target.value)}
       />
 
       <h3 style={{ ...styles.heading2, marginTop: 40 }}>Recommendation by the Hiring Manager</h3>
@@ -655,100 +763,108 @@ export default function InterviewAssessmentForm() {
       </div>
 
       <h3 style={{ ...styles.heading2, marginTop: 32 }}>Behavioral Interview Questions (To be updated by HR)</h3>
-      <p style={{ fontStyle: "italic", color: "#555" }}>
-        Behavioural interview questions use real past experiences to predict how someone might perform in the future.
-      </p>
-      <p style={{ fontStyle: "italic", color: "#555", marginBottom: 10 }}>
-        Select one question from the list below and use it with all candidates for this role to maintain a fair and consistent interview process.
-      </p>
 
-      {initialValuesData.map((value, idx) => (
-        <div key={value.id} style={styles.questionBlock}>
-          <h4 style={styles.questionBlockTitle}>{value.title}</h4>
-          <label htmlFor={`behavioral-select-${idx}`} style={{ fontWeight: 600, marginBottom: 8, display: 'block' }}>
-            Select one question:
-          </label>
-          <select
-            id={`behavioral-select-${idx}`}
-            value={
-              formData.behavioralAnswers &&
-              formData.behavioralAnswers[idx] &&
-              formData.behavioralAnswers[idx].selectedQuestions.length > 0
-                ? formData.behavioralAnswers[idx].selectedQuestions[0]
-                : ""
-            }
-            onChange={(e) => {
-              const selected = Number(e.target.value);
-              setFormData((f) => {
-                const answersCopy = [...f.behavioralAnswers];
-                answersCopy[idx].selectedQuestions = selected >= 0 ? [selected] : [];
-                return { ...f, behavioralAnswers: answersCopy };
-              });
+      {/* Skills Sections */}
+        {skillsList.map((skill,idx) => (
+          <section
+            key={skill.id}
+            style={{
+              // background: "#3fabe0",
+              padding: 15,
+              marginBottom: 20,
+              borderTop: "1px solid #606060",
+              borderBottom: "1px solid #606060",
+              borderRight: "1px solid #606060",
+              borderLeft: "6px solid #bd2331",
+              borderRadius: 5,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
             }}
-            style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ccc" }}
           >
-            <option value="">-- Select a question --</option>
-            {value.questions.map((q, qi) => (
-              <option key={qi} value={qi}>{q}</option>
-            ))}
-          </select>
+            <h3 style={{ margin: 0, marginBottom: 5, color: "#1e4489" }}>
+              {`${skill.id}. ${skill.title}`}
+            </h3>
+            <p style={{ fontStyle: "italic", color: "#606060" }}>{skill.desc}</p>
+            <ul style={{ margin: "5px 0 15px 20px", color: "#333" }}>
+              {skill.bullets.map((point, idx) => (
+                <li key={idx}>{point}</li>
+              ))}
+            </ul>
 
-          <div style={{ marginTop: 12, marginBottom: 6, fontWeight: 600 }}>
-            Interview Notes:{" "}
-            <span style={{ fontStyle: "italic", color: "#555", marginLeft: 8, fontSize: 13 }}>
-              Mention what is the circumstance, action taken by the candidate and what was the result
-            </span>
-          </div>
-          <table style={styles.carTable}>
-            <thead>
-              <tr>
-                <th style={styles.carTableTh}>Circumstance</th>
-                <th style={styles.carTableTh}>Action</th>
-                <th style={styles.carTableTh}>Result</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                {["circumstance", "action", "result"].map((field) => (
-                  <td key={field} style={styles.carTableTd}>
-                    <textarea
-                      rows={3}
-                      value={formData.behavioralAnswers[idx].notes[field]}
-                      onChange={(e) => updateBehavioralNote(idx, field, e.target.value)}
-                      style={{
-                        width: "100%",
-                        height: "100px",
-                        resize: "vertical",
-                        borderRadius: 4,
-                        border: "1px solid #aaa",
-                      }}
-                    />
-                  </td>
-                ))}
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      ))}
+            <label>Rating (1-5): </label>
+            <select
+              name={`behavioral_skill${skill.id}`}
+              value={formData.behavioralAnswers[idx]?.rating || 0}
+              required
+              onChange={e => {
+                const updated = [...formData.behavioralAnswers];
+                updated[idx] = {
+                  ...updated[idx],
+                  rating: Number(e.target.value)
+                };
+                setFormData(f => ({ ...f, behavioralAnswers: updated }));
+              }}
+              style={{
+                width: "100%",
+                padding: 10,
+                marginTop: 5,
+                borderRadius: 5,
+                paddingBottom: 10,
+                border: "1px solid #ccc",
+                boxSizing: "border-box",
+              }}
+            >
+              <option value="0">Select</option>
+              {[1, 2, 3, 4, 5].map((v) => (
+                <option key={v} value={v}>
+                  {v} - {["Poor", "Fair", "Good", "Very Good", "Excellent"][v - 1]}
+                </option>
+              ))}
+            </select>
+
+            <label style={{ marginTop: 10 }}>Comments:</label>
+            <textarea
+              name={`behavioral_skill${skill.id}_comments`}
+              value={formData.behavioralAnswers[idx]?.comments || ""}
+              onChange={e => {
+              const updated = [...formData.behavioralAnswers];
+              updated[idx] = {
+                ...updated[idx],
+                comments: e.target.value
+              };
+              setFormData(f => ({ ...f, behavioralAnswers: updated }));
+            }}
+              rows={3}
+              style={{
+                width: "100%",
+                padding: 10,
+                marginTop: 5,
+                borderRadius: 5,
+                border: "1px solid #ccc",
+                resize: "vertical",
+                boxSizing: "border-box",
+              }}
+            />
+          </section>
+        ))}
 
       <label style={styles.inputLabel}>Strengths:</label>
       <textarea
         style={styles.textareaStyle}
-        value={formData.strengthsHM}
+        value={formData.strengths}
         onChange={(e) => updateField("strengths", e.target.value)}
       />
 
       <label style={styles.inputLabel}>Areas of Improvement:</label>
       <textarea
         style={styles.textareaStyle}
-        value={formData.improvementAreasHM}
+        value={formData.improvementAreas}
         onChange={(e) => updateField("improvementAreas", e.target.value)}
       />
 
       <label style={styles.inputLabel}>Overall Comments:</label>
       <textarea
         style={styles.textareaStyle}
-        value={formData.overallCommentsHM}
+        value={formData.overallComments}
         onChange={(e) => updateField("overallComments", e.target.value)}
       />
 
@@ -889,10 +1005,10 @@ export default function InterviewAssessmentForm() {
           </tr>
         </tbody>
       </table>
-
+                  
       <div style={styles.btnGroup}>
-      <button onClick={handleSubmitAndShare} style={{ ...styles.btn, backgroundColor: "#bd2331" }}>
-        Submit & Share
+      <button onClick={handleSubmitAndShare} style={{ ...styles.btn, backgroundColor: "#bd2331" }} disabled={isSubmitting}>
+        {isSubmitting ? "Submitting..." : "Submit & Share"}
       </button>
       <button
         onClick={() => window.print()}

@@ -10,7 +10,7 @@ const SHEET_ID = process.env.SMARTSHEET_INTERVIEW_SHEET_ID
 const smartsheetClient = smartsheet.createClient({
   accessToken: process.env.SMARTSHEET_API_TOKEN || process.env.SMARTSHEET_ACCESS_TOKEN,
 });
-
+ 
 const addAttachmentToRow = async ({ rowId, filePath, fileName, contentType }) => {
   const readStream = fs.createReadStream(filePath);
   const response = await smartsheetClient.attachments.addAttachmentToRow({
@@ -91,9 +91,17 @@ async function addRowWithInterviewData(formData) {
   if (columnMap["BehavioralAnswers"] && formData.behavioralAnswers) {
     cells.push({
       columnId: columnMap["BehavioralAnswers"],
-      value: safeJSONStringify(formData.behavioralAnswers),
+      value: JSON.stringify(formData.behavioralAnswers),
     });
   }
+
+  if (columnMap["BehavioralAnswersHM"] && formData.behavioralAnswersHM) {
+    cells.push({
+      columnId: columnMap["BehavioralAnswersHM"],
+      value: JSON.stringify(formData.behavioralAnswersHM),
+    });
+  }
+
 
   const newRow = { toTop: true, cells };
   const addedRows = await smartsheetClient.sheets.addRows({ sheetId: SHEET_ID, body: [newRow] });
@@ -131,11 +139,17 @@ async function updateRowWithInterviewData(rowId, formData) {
       value: safeJSONStringify(formData.competencies),
     });
   }
-
   if (columnMap["BehavioralAnswers"] && formData.behavioralAnswers) {
     cells.push({
       columnId: columnMap["BehavioralAnswers"],
-      value: safeJSONStringify(formData.behavioralAnswers),
+      value: JSON.stringify(formData.behavioralAnswers),
+    });
+  }
+    
+  if (columnMap["BehavioralAnswersHM"] && formData.behavioralAnswersHM) {
+    cells.push({
+      columnId: columnMap["BehavioralAnswersHM"],
+      value: JSON.stringify(formData.behavioralAnswersHM),
     });
   }
 
@@ -182,6 +196,7 @@ async function getInterviewById(rowId) {
     hiringManagerRecommendation: getCellValue("HiringManagerRecommendation"),
     competencies: safeJSONParse(getCellValue("Competencies")),
     behavioralAnswers: safeJSONParse(getCellValue("BehavioralAnswers")),
+    behavioralAnswersHM: safeJSONParse(getCellValue("BehavioralAnswersHM")),
     strengthsHM: getCellValue("StrengthsHM"),
     improvementAreasHM: getCellValue("ImprovementAreasHM"),
     overallCommentsHM: getCellValue("OverallCommentsHM"),
