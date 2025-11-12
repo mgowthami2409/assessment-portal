@@ -30,5 +30,5 @@ app.get("*", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Backend server running at https://suprajit-portal.onrender.com:${PORT}`);
+  console.log(`Backend server running at https://assessment-portal-backend.onrender.com:${PORT}`);
 });
