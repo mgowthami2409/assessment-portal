@@ -237,80 +237,126 @@ export default function ReferenceCheckForm() {
           </tbody>
         </table>
 
-        {/* --- SIGNATURE SECTION (Updated with upload like Interview Form) ---  */}
+        {/* ---------- SIGNATURE SECTION (Blue Header + Small Upload Box) ---------- */}
 
         <h2 style={sectionTitle}>Signature</h2>
         <div style={{ height: 3, backgroundColor: PRIMARY_RED, marginBottom: 12 }} />
 
+        {/* NAME + DESIGNATION BOX (Outside table) */}
         <div
           style={{
-            display: "flex",
-            gap: 20,
-            border: "1px solid #bfbfbf",
+            border: "1px solid #d3d3d3",
             padding: 16,
             borderRadius: 6,
             background: "#fff",
+            marginBottom: 20,
           }}
         >
-
-          {/* LEFT SIDE - Name + Designation */}
-        <div style={{ flex: 1 }}>
+          {/* Name */}
           <div style={{ marginBottom: 12 }}>
             <div style={{ fontWeight: 600, marginBottom: 4, fontSize: 14 }}>Name</div>
-            <input style={inputStyle} type="text" />
+            <input type="text" style={inputStyle} />
           </div>
 
-          <div>
+          {/* Designation */}
+          <div style={{ marginBottom: 16 }}>
             <div style={{ fontWeight: 600, marginBottom: 4, fontSize: 14 }}>
               Designation – Department
             </div>
-            <input style={inputStyle} type="text" />
+            <input type="text" style={inputStyle} />
           </div>
         </div>
 
-          {/* RIGHT SIDE - Signature UPLOAD BOX */}
-          <div
-            style={{
-              flex: 1,
-              border: "1px solid #000",
-              borderRadius: 4,
-              minHeight: 100,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              background: "#fff",
-              flexDirection: "column",
-              padding: 10,
-            }}
-          >
-            {/* Uploaded Signature Preview */}
-            {signaturePreview ? (
-              <img
-                src={signaturePreview}
-                alt="Signature Preview"
+        {/* ---------- SIGNATURE SECTION (Compact Left-Aligned Box + Blue Header) ---------- */}
+        <table
+          style={{
+            width: 200, // <<< SMALL WIDTH (same as your signature block)
+            height: 100,
+            borderCollapse: "collapse",
+            marginBottom: 30,
+            marginLeft: 0, // <<< LEFT ALIGNED
+          }}
+        >
+          <thead>
+            <tr>
+              <th
                 style={{
-                  maxHeight: 80,
-                  maxWidth: "90%",
-                  objectFit: "contain",
-                  marginBottom: 8,
+                  background: "#36a9e1",
+                  color: "#000",
+                  padding: "10px 0",
+                  textAlign: "center",
+                  border: "1px solid #000",
+                  fontSize: 16,
+                  fontWeight: 600,
                 }}
-              />
-            ) : null}
+              >
+                Signature
+              </th>
+            </tr>
+          </thead>
 
-            {/* File Input */}
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (ev) => setSignaturePreview(ev.target.result);
-                reader.readAsDataURL(file);
-              }}
-            />
-          </div>
-        </div>
+          <tbody>
+            <tr>
+              <td
+                style={{
+                  border: "1px solid #000",
+                  height: 80,
+                  textAlign: "center",
+                  verticalAlign: "middle",
+                }}
+              >
+                {/* Hidden Input */}
+                <input
+                  type="file"
+                  id="signatureInput"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (ev) => setSignaturePreview(ev.target.result);
+                    reader.readAsDataURL(file);
+                  }}
+                />
+
+                {/* Small Clickable Signature Box */}
+                <div
+                  onClick={() =>
+                    document.getElementById("signatureInput").click()
+                  }
+                  style={{
+                    width: 180,
+                    height: 48,
+                    border: "1px solid #000",
+                    borderRadius: 4,
+                    background: "#fff",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: 4,
+                    cursor: "pointer",
+                    margin: "0 auto", // <<< centers inside table cell
+                  }}
+                >
+                  {signaturePreview ? (
+                    <img
+                      src={signaturePreview}
+                      alt="Signature Preview"
+                      style={{
+                        maxHeight: 40,
+                        maxWidth: "95%",
+                        objectFit: "contain",
+                      }}
+                    />
+                  ) : (
+                    <span style={{ fontSize: 12, color: TEXT_GRAY }}>Choose file</span>
+                  )}
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
         {/* ---------------- Buttons ---------------- */}
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 20 }}>
