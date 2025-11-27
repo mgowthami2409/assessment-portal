@@ -1,3 +1,4 @@
+/* BehavioralAssessment.js */
 import React, { useRef, useState, useEffect } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
