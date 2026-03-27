@@ -784,8 +784,8 @@ export default function InterviewAssessmentForm() {
         <thead>
           <tr>
             <th style={styles.signatureTh}>Hiring Manager</th>
-            <th style={styles.signatureTh}>Reviewing Manager</th>
             <th style={styles.signatureTh}>Division HR</th>
+            <th style={styles.signatureTh}>Reviewing Manager</th>
           </tr>
         </thead>
         <tbody>
@@ -820,54 +820,6 @@ export default function InterviewAssessmentForm() {
                         type="file"
                         accept="image/*"
                         onChange={(e) => handleSignatureUpload("hiringManager", e)}
-                        style={{ margin: "0 auto", display: "block" }}
-                      />
-                    </>
-                  )}
-                </div>
-              </div>
-            </td>
-
-            {/* Reviewing Manager Signature & Name */}
-            <td style={styles.signatureBox}>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100%" }}>
-                <input
-                  type="text"
-                  placeholder="Reviewing Manager Name"
-                  value={formData.reviewingManagerName || ""}
-                  onChange={(e) => updateField("reviewingManagerName", e.target.value)}
-                  style={{
-                    marginTop: 6,
-                    marginBottom: 2,
-                    padding: "4px 6px",
-                    fontSize: 13,
-                    borderRadius: 4,
-                    border: "1px solid #ccc",
-                    width: "85%",
-                    alignSelf: "center",
-                    boxSizing: "border-box",
-                    height: 26,
-                    textAlign: "center",
-                  }}
-                />
-                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}>
-                  {signatures.reviewingManager ? (
-                    <label style={{ cursor: "pointer", height: "100%" }}>
-                      <img src={signatures.reviewingManager} alt="Reviewing Manager signature" style={styles.signatureImg} />
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleSignatureUpload("reviewingManager", e)}
-                        style={{ display: "none" }}
-                      />
-                    </label>
-                  ) : (
-                    <>
-                      {/* <span style={{ color: "#bbb", fontSize: 13, margin: "10px 0 4px 0" }}>No signature</span> */}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleSignatureUpload("reviewingManager", e)}
                         style={{ margin: "0 auto", display: "block" }}
                       />
                     </>
@@ -923,6 +875,54 @@ export default function InterviewAssessmentForm() {
                 </div>
               </div>
             </td>
+            {/* Reviewing Manager Signature & Name */}
+            <td style={styles.signatureBox}>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100%" }}>
+                <input
+                  type="text"
+                  placeholder="Reviewing Manager Name"
+                  value={formData.reviewingManagerName || ""}
+                  onChange={(e) => updateField("reviewingManagerName", e.target.value)}
+                  style={{
+                    marginTop: 6,
+                    marginBottom: 2,
+                    padding: "4px 6px",
+                    fontSize: 13,
+                    borderRadius: 4,
+                    border: "1px solid #ccc",
+                    width: "85%",
+                    alignSelf: "center",
+                    boxSizing: "border-box",
+                    height: 26,
+                    textAlign: "center",
+                  }}
+                />
+                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}>
+                  {signatures.reviewingManager ? (
+                    <label style={{ cursor: "pointer", height: "100%" }}>
+                      <img src={signatures.reviewingManager} alt="Reviewing Manager signature" style={styles.signatureImg} />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleSignatureUpload("reviewingManager", e)}
+                        style={{ display: "none" }}
+                      />
+                    </label>
+                  ) : (
+                    <>
+                      {/* <span style={{ color: "#bbb", fontSize: 13, margin: "10px 0 4px 0" }}>No signature</span> */}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleSignatureUpload("reviewingManager", e)}
+                        style={{ margin: "0 auto", display: "block" }}
+                      />
+                    </>
+                  )}
+                </div>
+              </div>
+            </td>
+
           </tr>
 
         </tbody>

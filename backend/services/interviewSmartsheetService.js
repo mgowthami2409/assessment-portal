@@ -53,11 +53,9 @@ async function addRowWithInterviewData(formData) {
     { columnId: columnMap.ReviewingManagerName, value: safeValue(formData.reviewingManagerName) },
     { columnId: columnMap.DivisionHRName, value: safeValue(formData.divisionHRName) },
     { columnId: columnMap.HiringManagerRecommendation, value: safeValue(formData.hiringManagerRecommendation) },
-
-    // Signature fields
-    { columnId: columnMap.HiringManagerSignature, value: safeValue(formData.hiringManager) },
-    { columnId: columnMap.ReviewingManagerSignature, value: safeValue(formData.reviewingManager) },
-    { columnId: columnMap.DivisionHRSignature, value: safeValue(formData.divisionHR) },
+    { columnId: columnMap.StrengthsHM, value: safeValue(formData.strengthsHM) },
+    { columnId: columnMap.ImprovementAreasHM, value: safeValue(formData.improvementAreasHM) },
+    { columnId: columnMap.OverallCommentsHM, value: safeValue(formData.overallCommentsHM) },
   ];
 
   // JSON blobs
@@ -95,11 +93,9 @@ async function updateRowWithInterviewData(interviewId, formData) {
     { columnId: columnMap.ReviewingManagerName, value: safeValue(formData.reviewingManagerName) },
     { columnId: columnMap.DivisionHRName, value: safeValue(formData.divisionHRName) },
     { columnId: columnMap.HiringManagerRecommendation, value: safeValue(formData.hiringManagerRecommendation) },
-
-    // Signature fields
-    { columnId: columnMap.HiringManagerSignature, value: safeValue(formData.hiringManager) },
-    { columnId: columnMap.ReviewingManagerSignature, value: safeValue(formData.reviewingManager) },
-    { columnId: columnMap.DivisionHRSignature, value: safeValue(formData.divisionHR) },
+    { columnId: columnMap.StrengthsHM, value: safeValue(formData.strengthsHM) },
+    { columnId: columnMap.ImprovementAreasHM, value: safeValue(formData.improvementAreasHM) },
+    { columnId: columnMap.OverallCommentsHM, value: safeValue(formData.overallCommentsHM) },
   ];
 
   // if (columnMap.CompetencyNames && formData.competencyNames) {
@@ -147,11 +143,9 @@ async function getInterviewById(rowId) {
     reviewingManagerName: getCellValue("ReviewingManagerName"),
     divisionHRName: getCellValue("DivisionHRName"),
     hiringManagerRecommendation: getCellValue("HiringManagerRecommendation"),
-
-    // Signature data
-    hiringManager: getCellValue("HiringManagerSignature"),
-    reviewingManager: getCellValue("ReviewingManagerSignature"),
-    divisionHR: getCellValue("DivisionHRSignature"),
+    strengthsHM: getCellValue("StrengthsHM"),
+    improvementAreasHM: getCellValue("ImprovementAreasHM"),
+    overallCommentsHM: getCellValue("OverallCommentsHM"),
 
     // competencyNames: safeJSONParse(getCellValue("CompetencyNames")),
     competencies: safeJSONParse(getCellValue("Competencies")),
